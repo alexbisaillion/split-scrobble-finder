@@ -1,0 +1,14 @@
+{
+  "name": "split-scrobbler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "split.js",
+  "scripts": {
+    "test": "node split.js"
+  },
+  "author": "Alex Bisaillion",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.88.0"
+  }
+}
