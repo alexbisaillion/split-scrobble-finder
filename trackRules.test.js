@@ -38,8 +38,26 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
     expect(isDuplicateTrack('Livin\' Underwater (Is Somethin\' Wild)', 'Livin’ Underwater (Is Something Wild)')).toBe(true);
   });
   test('FINISH EM ZEL | F1N1ZH EM ZEL', () => {
-    expect(isDuplicateTrack('SUPER SAIYAN SUPERMAN l ZUPER ZA1YAN ZUPERMAN', 'SUPER SAIYAN SUPERMAN | ZUPER ZA1YAN ZUPERMAN')).toBe(true);
-  }); 
+    expect(isDuplicateTrack('SIRENS l Z1RENZ (feat. J.I.D)', 'SIRENS | Z1RENZ [FEAT. J.I.D | J.1.D]')).toBe(true);
+  });
+  test('Check if track with extra text is a duplicate', () => {
+    expect(isDuplicateTrack('Bedtime Stories (Feat. The Weeknd)', 'Bedtime Stories (feat. The Weeknd) - From SR3MM')).toBe(true);
+  });
+  test('Check if feature tags using different nonalphanumeric characters are duplicates', () => {
+    expect(isDuplicateTrack('Flying Overseas (feat. Devonte Hynes And Solange Knowles)', 'Flying Overseas - feat. Devonte Hynes And Solange Knowles')).toBe(true);
+  });
+  test('Check if remix with excess feature tag is a duplicate', () => {
+    expect(isDuplicateTrack('Drunk In Love Remix', 'Drunk In Love Remix (feat. Jay Z & Kanye West)')).toBe(true);
+  });
+  test('Check if extended version with excess feature tag is a duplicate', () => {
+    expect(isDuplicateTrack('Blessings (Extended Version) [feat. Drake & Kanye West]', 'Blessings - Extended Version')).toBe(true);
+  });
+  test('Check if repeated feature tag is a duplicate', () => {
+    expect(isDuplicateTrack('Palmolive (feat. Pusha T & Killer Mike)', 'Palmolive feat. Pusha T. & Killer Mike (feat. Pusha T & Killer Mike)')).toBe(true);
+  });
+  test('Check if tracks using different spelling of \'part\' are duplicates', () => {
+    expect(isDuplicateTrack('Girls, Girls, Girls (Part 2)', 'Girls, Girls, Girls, Pt. 2')).toBe(true);
+  });
 });
 
 describe('Check if the isDuplicateTrack method successfully detects non duplicates', () => {
@@ -95,6 +113,18 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
     expect(isDuplicateTrack('For Free? - Interlude', 'For Sale? (interlude)')).toBe(false);
   });
   test('Check if tracks with a name consisting of a single similar word are not duplicates', () => {
-    expect(isDuplicateTrack('Loca', 'Loco')).toBe(false);
+    expect(isDuplicateTrack('Insecure', 'Insecurity')).toBe(false);
+  });
+  test('Check if different tracks with the same feature are not duplicates', () => {
+    expect(isDuplicateTrack('Atlantique Sud (feat. Mai Lan)', 'Bibi the Dog (feat. Mai Lan)')).toBe(false);
+  });
+  test('Check if a different mix of the same track is not a duplicate', () => {
+    expect(isDuplicateTrack('So Heavy I Fell Through the Earth - Algorithm Mix', 'So Heavy I Fell Through the Earth - Art Mix')).toBe(false);
+  });
+  test('Check if a continued song is not a duplicate', () => {
+    expect(isDuplicateTrack('Everything Now', 'Everything Now (continued)')).toBe(false);
+  });
+  test('Check if a remastered song is not a duplicate', () => {
+    expect(isDuplicateTrack('Smooth Criminal', 'Smooth Criminal - 2012 Remaster')).toBe(false);
   });
 });
