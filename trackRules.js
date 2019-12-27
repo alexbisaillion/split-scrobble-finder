@@ -3,7 +3,7 @@ const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with '];
 
 function isDuplicateTrack(track1, track2) {
   //console.log(track1 + ' vs ' + track2);
-  if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise'])) {
+  if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single'])) {
     return false;
   }
   return isMatched(track1, track2);
@@ -27,7 +27,8 @@ function isMatched(track1, track2) {
   if (containsFeatureTag(track1) && containsFeatureTag(track2)) {
     let track1Features = getFeaturedArtists(track1);
     let track2Features = getFeaturedArtists(track2);
-    if (track1Features && track2Features && stringSimilarity.compareTwoStrings(track1Features, track2Features) < 0.75) {
+    if (track1Features && track2Features && stringSimilarity.compareTwoStrings(track1Features, track2Features) < 0.5) {
+      console.log(stringSimilarity.compareTwoStrings(track1Features, track2Features));
       return false;
     }
   }
@@ -53,8 +54,10 @@ function isMatched(track1, track2) {
     if (Number.isInteger(split1[i]) && Number.isInteger(split2[i]) && split1[i] != split2[i]) {
       return false;
     }
-    if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.75) {
-      //console.log(split1[i] + ', ' + split2[i])
+    if ((split1[i] === 'pt' || split1[i] === 'part') && (split2[i] === 'pt' || split2[i] === 'part')) {
+      continue;
+    }
+    if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.80) {
       return false;
     }
   }
