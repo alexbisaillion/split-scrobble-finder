@@ -4,11 +4,15 @@
   "description": "",
   "main": "split.js",
   "scripts": {
-    "test": "node split.js"
+    "test": "jest"
   },
   "author": "Alex Bisaillion",
   "license": "ISC",
   "dependencies": {
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "string-similarity": "^3.0.0"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0"
   }
 }
