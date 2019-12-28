@@ -58,6 +58,9 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
   test('Check if tracks using different spelling of \'part\' are duplicates', () => {
     expect(isDuplicateTrack('Girls, Girls, Girls (Part 2)', 'Girls, Girls, Girls, Pt. 2')).toBe(true);
   });
+  test('Check if tracks using different spelling of \'part\' are duplicates', () => {
+    expect(isDuplicateTrack('Girls, Girls, Girls, Pt. 2', 'Girls, Girls, Girls, pt. II')).toBe(true);
+  });
 });
 
 describe('Check if the isDuplicateTrack method successfully detects non duplicates', () => {
