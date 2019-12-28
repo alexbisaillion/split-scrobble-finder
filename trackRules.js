@@ -1,5 +1,6 @@
 const stringSimilarity = require('string-similarity');
 const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with '];
+const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
 
 function isDuplicateTrack(track1, track2) {
   //console.log(track1 + ' vs ' + track2);
@@ -28,7 +29,7 @@ function isMatched(track1, track2) {
     let track1Features = getFeaturedArtists(track1);
     let track2Features = getFeaturedArtists(track2);
     if (track1Features && track2Features && stringSimilarity.compareTwoStrings(track1Features, track2Features) < 0.5) {
-      console.log(stringSimilarity.compareTwoStrings(track1Features, track2Features));
+      //console.log(stringSimilarity.compareTwoStrings(track1Features, track2Features));
       return false;
     }
   }
@@ -51,8 +52,18 @@ function isMatched(track1, track2) {
   }
 
   for (let i = 0; i < split1.length; i++) {
-    if (Number.isInteger(split1[i]) && Number.isInteger(split2[i]) && split1[i] != split2[i]) {
+    if (!isNaN((split1[i])) && !isNaN(split2[i]) && split1[i] != split2[i]) {
       return false;
+    }
+    if (!isNaN(split1[i]) && isNaN(split2[i])) {
+      if (isRomanNum(split2[i]) && convertRomanNumToInt(split2[i]) === parseInt(split1[i])) {
+        continue;
+      }
+    }
+    if (isNaN(split1[i]) && !isNaN(split2[i])) {
+      if (isRomanNum(split1[i]) && convertRomanNumToInt(split1[i]) === parseInt(split2[i])) {
+        continue;
+      }
     }
     if ((split1[i] === 'pt' || split1[i] === 'part') && (split2[i] === 'pt' || split2[i] === 'part')) {
       continue;
@@ -83,13 +94,13 @@ function getWords(track1, track2) {
     }
     if (split1[i].length < 2 && split2[i].length >= 2) {
       if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > 0.9) {
-        console.log(split1[i] + ' !!! ' + track1);
+        //console.log(split1[i] + ' !!! ' + track1);
         split1.splice(i, 1);
         i--;  
       }
     } else if (split2[i].length < 2 && split1[i].length >= 2) {
       if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > 0.9) {
-        console.log(split2[i] + ' !!! ' + track2);
+        //console.log(split2[i] + ' !!! ' + track2);
         split2.splice(i, 1);
         i--;  
       }
@@ -143,6 +154,23 @@ function stripFeatureTag(track) {
     track = track.substring(0, track.indexOf(' with '));
   }
   return track;
+}
+
+function isRomanNum(num) {
+  if (num === null || !(typeof num[Symbol.iterator] === 'function')) {
+    return false;
+  }
+  for (let char of num) {
+    if (!(char in romanNumVals)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function convertRomanNumToInt(romanNum) {
+  let reducer = (acc, cur, idx, src) => acc + (romanNumVals[cur] < romanNumVals[src[idx + 1]] ? -romanNumVals[cur] : romanNumVals[cur]);
+  return romanNum.split('').reduce(reducer, 0);
 }
 
 module.exports = isDuplicateTrack;
