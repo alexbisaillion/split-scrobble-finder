@@ -3,7 +3,11 @@ const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
 
 function isDuplicateTrack(track1, track2) {
-  //console.log(track1 + ' vs ' + track2);
+  if (stringSimilarity.compareTwoStrings(track1, track2) < 0.5) {
+    if (!track1.startsWith(track2) && !track2.startsWith(track1)) {
+      return false;
+    }
+  }
   if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'])) {
     return false;
   }
