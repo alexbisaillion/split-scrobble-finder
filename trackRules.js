@@ -1,10 +1,10 @@
 const stringSimilarity = require('string-similarity');
-const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with '];
+const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
 
 function isDuplicateTrack(track1, track2) {
   //console.log(track1 + ' vs ' + track2);
-  if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single'])) {
+  if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'])) {
     return false;
   }
   return isMatched(track1, track2);
@@ -76,6 +76,7 @@ function isMatched(track1, track2) {
 }
 
 function stripNonAlphaNumeric(track) {
+  track = track.replace(/:|\//g,' '); // it is likely that a slash or a colon separates two words, so the words should be kept separate
   return track.replace(/[^A-Za-z0-9\s]/g, '');
 }
 
@@ -152,6 +153,8 @@ function stripFeatureTag(track) {
     track = track.substring(0, track.indexOf(' feat '));
   } else if (track.includes(' with ')) {
     track = track.substring(0, track.indexOf(' with '));
+  } else if (track.includes(' featuring ')) {
+    track = track.substring(0, track.indexOf(' featuring '));
   }
   return track;
 }
