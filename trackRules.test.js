@@ -58,8 +58,26 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
   test('Check if tracks using different spelling of \'part\' are duplicates', () => {
     expect(isDuplicateTrack('Girls, Girls, Girls (Part 2)', 'Girls, Girls, Girls, Pt. 2')).toBe(true);
   });
-  test('Check if tracks using different spelling of \'part\' are duplicates', () => {
+  test('Check if track using roman numerals is a duplicate', () => {
     expect(isDuplicateTrack('Girls, Girls, Girls, Pt. 2', 'Girls, Girls, Girls, pt. II')).toBe(true);
+  });
+  test('Check if the same mix is a duplicate', () => {
+    expect(isDuplicateTrack('Hey Ya! (Radio Mix/Club Mix)', 'Hey Ya! - Radio Mix / Club Mix')).toBe(true);
+  });
+  test('Check if an ampersand instead of \'and\' is a duplicate', () => {
+    expect(isDuplicateTrack('Or Nah (feat. The Weeknd, Wiz Khalifa & DJ Mustard) - Remix', 'Or Nah (feat. The Weeknd, Wiz Khalifa and DJ Mustard) - Remix')).toBe(true);
+  });
+  test('Check if featured artists in different order is a duplicate', () => {
+    expect(isDuplicateTrack('100 Bands (feat. Quavo, 21 Savage, Meek Mill & YG)', '100 Bands (feat. Quavo, 21 Savage, YG & Meek Mill)')).toBe(true);
+  });
+  test('Check if abbreviation not using punctuation is a duplicate', () => {
+    expect(isDuplicateTrack('Operation Lifesaver a.k.a Mint Test', 'Operation Lifesaver aka Mint Test')).toBe(true);
+  });
+  test('Check if abbreviation not using punctuation is a duplicate', () => {
+    expect(isDuplicateTrack('Music: Response', 'Music:Response')).toBe(true);
+  });
+  test('Check if feature using \'featuring\' instead of \'feat\' is a duplicate', () => {
+    expect(isDuplicateTrack('Jailbreak the Tesla (feat. Aminé)', 'Jailbreak the Tesla featuring Aminé')).toBe(true);
   });
 });
 
@@ -129,5 +147,14 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   });
   test('Check if a remastered song is not a duplicate', () => {
     expect(isDuplicateTrack('Smooth Criminal', 'Smooth Criminal - 2012 Remaster')).toBe(false);
+  });
+  test('Check if a remastered song is not a duplicate', () => {
+    expect(isDuplicateTrack('The Face Part I', 'The Face Part II')).toBe(false);
+  });
+  test('Check if an acoustic song is not a duplicate', () => {
+    expect(isDuplicateTrack('The Shade', 'The Shade - Acoustic')).toBe(false);
+  });
+  test('Check if the album version of a song is not a duplicate', () => {
+    expect(isDuplicateTrack('Tailwhip', 'Tailwhip (Album V)')).toBe(false);
   });
 });
