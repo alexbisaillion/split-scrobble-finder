@@ -1,5 +1,8 @@
 const request = require("request");
+const stringSimilarity = require('string-similarity');
 const credentials = require('./credentials');
+const isDuplicateTrack = require('./trackRules');
+const fs = require('fs');
 
 function getOptions(params) {
   return {
@@ -34,9 +37,11 @@ function getTracks(numTracks, pageNum, tracks) {
   request(getOptions({method: 'user.getTopTracks', user: 'watzpoppiin', limit: 1000, page: pageNum}), function (error, response, body) {
     if (error) {
       console.log('Error: ' + error);
+    } else if (!JSON.parse(body).toptracks) {
+      console.log('Last.fm API error');
     } else {
       tracks.push(...JSON.parse(body).toptracks.track);
-      if (numTracks - 1000 > 0) { // numTracks - 1000 > 0
+      if (numTracks - 1000 > 0) {
         getTracks(numTracks - 1000, pageNum + 1, tracks);
       } else {
         partitionTracks(tracks);
@@ -54,7 +59,28 @@ function partitionTracks(tracks) {
       partitioned[tracks[i].artist.name].push(tracks[i].name);
     }
   }
-  console.log(partitioned);
+  let matched = [];
+  for (let artist of Object.keys(partitioned)) {
+    partitioned[artist].sort();
+    for (let i = 0; i < partitioned[artist].length - 1; i++) {
+      let track1 = partitioned[artist][i];
+      let track2 = partitioned[artist][i + 1];
+      if (isDuplicateTrack(track1, track2)) {
+        // If not matched, should continue comparing
+        matched.push(partitioned[artist][i] + ', ' + partitioned[artist][i + 1]);
+        console.log(partitioned[artist][i] + ', ' + partitioned[artist][i + 1]);
+        console.log(stringSimilarity.compareTwoStrings(partitioned[artist][i], partitioned[artist][i + 1]));
+      }
+    }
+  }
+
+  /*
+  fs.writeFile("test7.txt", JSON.stringify(matched), function(err) {
+    if (err) {
+      console.log(err);
+    }
+  });
+  */
 }
 
 getNumTracks();
