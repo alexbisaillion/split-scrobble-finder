@@ -109,6 +109,9 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   test('Check if the same track remixed by different artists is not a duplicate', () => {
     expect(isDuplicateTrack('Positive Contact - Bonus Track - Charlie Clouser Remix', 'Positive Contact - Bonus Track - Mario C Remix')).toBe(false);
   });
+  test('Check if the same track remixed by different artists using \'with\' is not a duplicate', () => {
+    expect(isDuplicateTrack('OMG (with Carly Rae Jepsen) - Alphalove Remix', 'OMG (with Carly Rae Jepsen) - Anki Remix')).toBe(false);
+  });
   test('Check if remix nested in feature tag is not a duplicate', () => {
     expect(isDuplicateTrack('Genius (with Lil Wayne, Sia, Diplo & Labrinth - Lil Wayne Remix)', 'Genius (with Sia, Diplo & Labrinth)')).toBe(false);
   });
