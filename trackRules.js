@@ -29,11 +29,31 @@ function isMatched(track1, track2) {
   track1 = track1.toLowerCase();
   track2 = track2.toLowerCase();
 
-  if (containsFeatureTag(track1) && containsFeatureTag(track2)) {
-    let track1Features = getFeaturedArtists(track1);
-    let track2Features = getFeaturedArtists(track2);
-    if (track1Features && track2Features && stringSimilarity.compareTwoStrings(track1Features, track2Features) < 0.5) {
-      //console.log(stringSimilarity.compareTwoStrings(track1Features, track2Features));
+  let track1Features;
+  if (containsFeatureTag(track1)) {
+    track1Features = getFeaturedArtists(track1);
+  }
+
+  let track2Features;
+  if (containsFeatureTag(track2)) {
+    track2Features = getFeaturedArtists(track2);
+  }
+
+  if (track1Features && track2Features) {
+    if (stringSimilarity.compareTwoStrings(track1Features, track2Features) < 0.5) {
+      return false;
+    }
+
+    let excess1 = track1.replace(track1Features, '');
+    let excess2 = track2.replace(track2Features, '');
+
+    excess1 = stripNonAlphaNumeric(excess1);
+    excess2 = stripNonAlphaNumeric(excess2);
+  
+    excess1 = stripExcessWhitespace(excess1);
+    excess2 = stripExcessWhitespace(excess2);
+    
+    if (excess1 && excess2 && !analyzeFeatureTagExcess(excess1, excess2)) {
       return false;
     }
   }
@@ -48,34 +68,11 @@ function isMatched(track1, track2) {
   track2 = stripFeatureTag(track2);
   
   let words = getWords(track1, track2);
-  let split1 = words.split1;
-  let split2 = words.split2;
 
-  if (split1.length != split2.length) {
+  if (!analyzeWords(words.split1, words.split2)) {
     return false;
   }
 
-  for (let i = 0; i < split1.length; i++) {
-    if (!isNaN((split1[i])) && !isNaN(split2[i]) && split1[i] != split2[i]) {
-      return false;
-    }
-    if (!isNaN(split1[i]) && isNaN(split2[i])) {
-      if (isRomanNum(split2[i]) && convertRomanNumToInt(split2[i]) === parseInt(split1[i])) {
-        continue;
-      }
-    }
-    if (isNaN(split1[i]) && !isNaN(split2[i])) {
-      if (isRomanNum(split1[i]) && convertRomanNumToInt(split1[i]) === parseInt(split2[i])) {
-        continue;
-      }
-    }
-    if ((split1[i] === 'pt' || split1[i] === 'part') && (split2[i] === 'pt' || split2[i] === 'part')) {
-      continue;
-    }
-    if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.80) {
-      return false;
-    }
-  }
   return true;
 }
 
@@ -99,19 +96,48 @@ function getWords(track1, track2) {
     }
     if (split1[i].length < 2 && split2[i].length >= 2) {
       if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > 0.9) {
-        //console.log(split1[i] + ' !!! ' + track1);
         split1.splice(i, 1);
         i--;  
       }
     } else if (split2[i].length < 2 && split1[i].length >= 2) {
       if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > 0.9) {
-        //console.log(split2[i] + ' !!! ' + track2);
         split2.splice(i, 1);
         i--;  
       }
     }
   }
   return { split1: split1, split2: split2 };
+}
+
+function analyzeWords(split1, split2) {
+  if (split1.length != split2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < split1.length; i++) {
+    if (!isNaN((split1[i])) && !isNaN(split2[i]) && split1[i] != split2[i]) {
+      return false;
+    }
+    if (!isNaN(split1[i]) && isNaN(split2[i])) {
+      if (isRomanNum(split2[i]) && convertRomanNumToInt(split2[i]) === parseInt(split1[i])) {
+        continue;
+      }
+    }
+    if (isNaN(split1[i]) && !isNaN(split2[i])) {
+      if (isRomanNum(split1[i]) && convertRomanNumToInt(split1[i]) === parseInt(split2[i])) {
+        continue;
+      }
+    }
+    if ((split1[i] === 'pt' || split1[i] === 'part') && (split2[i] === 'pt' || split2[i] === 'part')) {
+      continue;
+    }
+
+    //console.log(split1[i] + ', ' + split2[i] + ', ' + stringSimilarity.compareTwoStrings(split1[i], split2[i]));
+    if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.80) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function containsFeatureTag(track) {
@@ -151,16 +177,34 @@ function getFeaturedArtists(track) {
 }
 
 function stripFeatureTag(track) {
-  if (track.includes(' feat ')) {
-    track = track.substring(0, track.indexOf(' feat '));
-  } else if (track.includes(' ft ')) {
-    track = track.substring(0, track.indexOf(' feat '));
-  } else if (track.includes(' with ')) {
-    track = track.substring(0, track.indexOf(' with '));
-  } else if (track.includes(' featuring ')) {
-    track = track.substring(0, track.indexOf(' featuring '));
+  for (let featKeyword of [' feat ', ' ft ', ' with ', ' featuring ']) {
+    if (track.includes(featKeyword)) {
+      track = track.substring(0, track.indexOf(featKeyword));
+      break;
+    }
   }
   return track;
+}
+
+function analyzeFeatureTagExcess(track1, track2) {
+  let cutoff1;
+  let cutoff2;
+  for (let featKeyword of featKeywords) {
+    if (track1.includes(featKeyword)) {
+      cutoff1 = track1.substring(track1.indexOf(featKeyword) + featKeyword.length, track1.length);
+    }
+    if (track2.includes(featKeyword)) {
+      cutoff2 = track2.substring(track2.indexOf(featKeyword) + featKeyword.length, track2.length);
+    }
+  }
+
+  if (cutoff1 && cutoff2) {
+    let words = getWords(cutoff1, cutoff2);
+    if (!analyzeWords(words.split1, words.split2)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isRomanNum(num) {
