@@ -99,14 +99,18 @@ function partitionTracks(req, res, next) {
 }
 
 function getDuplicates(req, res, next) {
-  let matched = [];
+  let matched = {};
   let partitioned = res.locals.partitioned;
   for (let artist of Object.keys(partitioned)) {
     partitioned[artist].sort();
     for (let i = 0; i < partitioned[artist].length - 1; i++) {
       if (isDuplicateTrack(partitioned[artist][i], partitioned[artist][i + 1])) {
         // TODO: If a match is found, compare against the next track to find multiple duplicates
-        matched.push({artist: artist, track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
+        if (!matched[artist]) {
+          matched[artist] = [{track1: partitioned[artist][i], track2: partitioned[artist][i + 1]}];
+        } else {
+          matched[artist].push({track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
+        }
       }
     }
   }
