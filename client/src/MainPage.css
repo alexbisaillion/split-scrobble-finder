@@ -1,3 +1,13 @@
 .MuiAvatar-colorDefault:hover {
   background-color: #9D1919;
 }
+
+body {
+  background-color: #212121;
+  color: #FFFFFF;
+}
+
+#root {
+  height: 100%;
+  width: 100%
+}
