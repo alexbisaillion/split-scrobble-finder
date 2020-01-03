@@ -36,17 +36,25 @@ const theme = createMuiTheme({
 class MainPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {reqType: 'tracks', user: '', isLoading: false, results: {}};
+    this.state = {reqType: 'tracks', user: '', isLoading: false, results: {}, error: ''};
     this.handleInputChange = this.handleInputChange.bind(this);
     this.makeRequest = this.makeRequest.bind(this);
   }
 
   makeRequest(event) {
     if (this.state.reqType && !this.state.isLoading) {
-      this.setState({isLoading: true}, () => { 
-        fetch(`/${this.state.reqType}?user=${this.state.user}`)
-        .then(res => res.json())
-        .then(response => this.setState({ results: response, isLoading: false }));
+      this.setState({isLoading: true}, () => {
+        fetch(`/${this.state.reqType}?user=${this.state.user}`).then(response => {
+          if (response.status === 200) {
+            response.json().then(res => {
+              this.setState({ results: res, isLoading: false, error: '' });
+            })
+          } else {
+            response.json().then(res => {
+              this.setState({ results: '', isLoading: false, error: res.error });
+            });
+          }
+        })
       });    
     }
     event.preventDefault();
@@ -62,8 +70,12 @@ class MainPage extends Component {
     if (this.state.isLoading) {
       resultsView = <LinearProgress variant="query" style={{width: '100%'}}/>;
     } else {
-      if (this.state.reqType === 'tracks') {
-        resultsView = <DuplicateTrackTable user={this.state.user} results={this.state.results}></DuplicateTrackTable>;
+      if (this.state.results) {
+        if (this.state.reqType === 'tracks') {
+          resultsView = <DuplicateTrackTable user={this.state.user} results={this.state.results}></DuplicateTrackTable>;
+        }
+      } else {
+        resultsView = <Typography variant='body1'>{this.state.error}</Typography>
       }
     }
     return (
