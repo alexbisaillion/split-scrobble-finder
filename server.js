@@ -11,7 +11,8 @@ let end;
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.get('/tracks', validateReq, getNumTracks, getTracks, partitionTracks, getDuplicates);
+app.get('/tracks', validateReq, getNumTracks, getTracks, partitionResults, getDuplicates);
+app.get('/albums', validateReq, getNumAlbums, getAlbums, partitionResults, getDuplicates);
 
 function getOptions(params) {
   return {
@@ -56,7 +57,28 @@ function getNumTracks(req, res, next) {
     } else {
       res.locals.numTracks = JSON.parse(body)['toptracks']['@attr']['total'];
       res.locals.pageNum  = 1;
-      res.locals.tracks = [];
+      res.locals.results = [];
+      next();
+    }
+  });
+}
+
+function getNumAlbums(req, res, next) {
+  request(getOptions({method: 'user.getTopAlbums', user: req.query.user, limit: 1}), function (error, response, body) {
+    if (error) {
+      console.log('Internal server error: ' + error);
+      res.status(500).json({error: 'Internal error.'});
+    } else if (response.statusCode != 200) {
+      console.log('Last.fm API error in getNumAlbums');
+      let errMessage = 'Last.fm error';
+      if (JSON.parse(body).message) {
+        errMessage += ': ' + JSON.parse(body).message;
+      }
+      res.status(400).json({error: errMessage});
+    } else {
+      res.locals.numAlbums = JSON.parse(body)['topalbums']['@attr']['total'];
+      res.locals.pageNum  = 1;
+      res.locals.results = [];
       next();
     }
   });
@@ -80,7 +102,7 @@ function getTracks(req, res, next) {
         console.log('Last.fm API error - no top tracks');
         res.status(500).json({error: 'Internal error.'});
       } else {
-        res.locals.tracks.push(...JSON.parse(body).toptracks.track);
+        res.locals.results.push(...JSON.parse(body).toptracks.track);
         if (res.locals.numTracks - 1000 > 0) {
           res.locals.numTracks = res.locals.numTracks - 1000;
           res.locals.pageNum = res.locals.pageNum + 1;
@@ -93,18 +115,49 @@ function getTracks(req, res, next) {
   }
 }
 
-function partitionTracks(req, res, next) {
+function getAlbums(req, res, next) {
+  getPage();
+  function getPage() {
+    request(getOptions({method: 'user.getTopAlbums', user: req.query.user, limit: 1000, page: res.locals.pageNum}), function (error, response, body) {
+      if (error) {
+        console.log('Internal server error: ' + error);
+        res.status(500).json({error: 'Internal error.'});
+      } else if (response.statusCode != 200) {
+        console.log('Last.fm API error in getAlbums');
+        let errMessage = 'Last.fm error';
+        if (JSON.parse(body).message) {
+          errMessage += ': ' + JSON.parse(body).message;
+        }
+        res.status(400).json({error: errMessage});
+      } else if (!JSON.parse(body).topalbums) {
+        console.log('Last.fm API error - no topalbums');
+        res.status(500).json({error: 'Internal error.'});
+      } else {
+        res.locals.results.push(...JSON.parse(body).topalbums.album);
+        if (res.locals.numAlbums - 1000 > 0) {
+          res.locals.numAlbums = res.locals.numAlbums - 1000;
+          res.locals.pageNum = res.locals.pageNum + 1;
+          getPage();
+        } else {
+          next();
+        }
+      }
+    });
+  }
+}
+
+function partitionResults(req, res, next) {
   let partitioned = {};
-  let tracks = res.locals.tracks;
-  for (let i = 0; i < tracks.length; i++) {
-    if (!partitioned[tracks[i].artist.name]) {
-      partitioned[tracks[i].artist.name] = [tracks[i].name]
+  let results = res.locals.results;
+  for (let i = 0; i < results.length; i++) {
+    if (!partitioned[results[i].artist.name]) {
+      partitioned[results[i].artist.name] = [results[i].name]
     } else {
-      partitioned[tracks[i].artist.name].push(tracks[i].name);
+      partitioned[results[i].artist.name].push(results[i].name);
     }
   }
   res.locals.partitioned = partitioned;
-  next()
+  next();
 }
 
 function getDuplicates(req, res, next) {
