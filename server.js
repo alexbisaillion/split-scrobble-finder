@@ -3,9 +3,8 @@ const path = require('path');
 const request = require('request');
 const credentials = require('./credentials');
 const isDuplicateTrack = require('./trackRules');
-
 const app = express();
-const { PerformanceObserver, performance } = require('perf_hooks');
+const { performance } = require('perf_hooks');
 let start;
 let end;
 
@@ -33,24 +32,27 @@ function getURL(params) {
   return url;
 }
 
-function getTrackInUserLibrary(trackURL, user) {
-  return trackURL.replace('/music/', `/user/${user}/library/music/`);
-}
-
 function validateReq(req, res, next) {
   if (req.query.user) {
     start = performance.now();
     next();
   } else {
-    res.status(400).send("Bad request.");
+    res.status(400).json({error: 'Bad request - missing user parameter'});
   }
 }
 
 function getNumTracks(req, res, next) {
   request(getOptions({method: 'user.getTopTracks', user: req.query.user, limit: 1}), function (error, response, body) {
     if (error) {
-      console.log('Error: ' + error);
-      res.status(500).send("Internal error.")
+      console.log('Internal server error: ' + error);
+      res.status(500).json({error: 'Internal error.'});
+    } else if (response.statusCode != 200) {
+      console.log('Last.fm API error in getNumTracks');
+      let errMessage = 'Last.fm error';
+      if (JSON.parse(body).message) {
+        errMessage += ': ' + JSON.parse(body).message;
+      }
+      res.status(400).json({error: errMessage});
     } else {
       res.locals.numTracks = JSON.parse(body)['toptracks']['@attr']['total'];
       res.locals.pageNum  = 1;
@@ -65,11 +67,18 @@ function getTracks(req, res, next) {
   function getPage() {
     request(getOptions({method: 'user.getTopTracks', user: req.query.user, limit: 1000, page: res.locals.pageNum}), function (error, response, body) {
       if (error) {
-        console.log('Error: ' + error);
-        res.status(500).send("Internal error.");
+        console.log('Internal server error: ' + error);
+        res.status(500).json({error: 'Internal error.'});
+      } else if (response.statusCode != 200) {
+        console.log('Last.fm API error in getTracks');
+        let errMessage = 'Last.fm error';
+        if (JSON.parse(body).message) {
+          errMessage += ': ' + JSON.parse(body).message;
+        }
+        res.status(400).json({error: errMessage});
       } else if (!JSON.parse(body).toptracks) {
-        console.log('Last.fm API error');
-        res.status(500).send("Internal error.");
+        console.log('Last.fm API error - no top tracks');
+        res.status(500).json({error: 'Internal error.'});
       } else {
         res.locals.tracks.push(...JSON.parse(body).toptracks.track);
         if (res.locals.numTracks - 1000 > 0) {
@@ -116,7 +125,7 @@ function getDuplicates(req, res, next) {
   }
   end = performance.now();
   console.log(end - start);
-  res.json(matched);
+  res.status(200).json(matched);
 }
 
 const port = process.env.PORT || 3001;
