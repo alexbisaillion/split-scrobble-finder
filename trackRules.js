@@ -3,6 +3,8 @@ const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
 
 function isDuplicateTrack(track1, track2) {
+  track1 = track1.toLowerCase();
+  track2 = track2.toLowerCase();
   if (stringSimilarity.compareTwoStrings(track1, track2) < 0.5) {
     if (!track1.startsWith(track2) && !track2.startsWith(track1)) {
       return false;
@@ -16,8 +18,8 @@ function isDuplicateTrack(track1, track2) {
 
 function isExempt(track1, track2, exemptKeywords) {
   for (keyword of exemptKeywords) {
-    let isTrack1Matched = track1.toLowerCase().includes(keyword.toLowerCase());
-    let isTrack2Matched = track2.toLowerCase().includes(keyword.toLowerCase());
+    let isTrack1Matched = track1.includes(keyword);
+    let isTrack2Matched = track2.includes(keyword);
     if ((isTrack1Matched && !isTrack2Matched) || (isTrack2Matched && !isTrack1Matched)) {
       return true;
     }
@@ -26,9 +28,6 @@ function isExempt(track1, track2, exemptKeywords) {
 }
 
 function isMatched(track1, track2) {
-  track1 = track1.toLowerCase();
-  track2 = track2.toLowerCase();
-
   let track1Features;
   if (containsFeatureTag(track1)) {
     track1Features = getFeaturedArtists(track1);
