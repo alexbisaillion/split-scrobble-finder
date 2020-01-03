@@ -73,11 +73,14 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
   test('Check if abbreviation not using punctuation is a duplicate', () => {
     expect(isDuplicateTrack('Operation Lifesaver a.k.a Mint Test', 'Operation Lifesaver aka Mint Test')).toBe(true);
   });
-  test('Check if abbreviation not using punctuation is a duplicate', () => {
+  test('Check if special character using different spacing is a duplicate', () => {
     expect(isDuplicateTrack('Music: Response', 'Music:Response')).toBe(true);
   });
   test('Check if feature using \'featuring\' instead of \'feat\' is a duplicate', () => {
     expect(isDuplicateTrack('Jailbreak the Tesla (feat. Aminé)', 'Jailbreak the Tesla featuring Aminé')).toBe(true);
+  });
+  test('Check if track with excess feature and a title with different casing is a duplicate', () => {
+    expect(isDuplicateTrack('PrimeTime', 'Primetime (feat. Miguel)')).toBe(true);
   });
 });
 
