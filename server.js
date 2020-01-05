@@ -2,8 +2,10 @@ const express = require('express');
 const path = require('path');
 const request = require('request');
 const credentials = require('./credentials');
-const isDuplicateTrack = require('./trackRules');
+const rules = require('./rules');
 const app = express();
+const fs = require('fs');
+
 const { performance } = require('perf_hooks');
 let start;
 let end;
@@ -11,8 +13,8 @@ let end;
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.get('/tracks', validateReq, getNumTracks, getTracks, partitionResults, getDuplicates);
-app.get('/albums', validateReq, getNumAlbums, getAlbums, partitionResults, getDuplicates);
+app.get('/tracks', validateReq, getNumTracks, getTracks, partitionResults, getDuplicateTracks);
+app.get('/albums', validateReq, getNumAlbums, getAlbums, partitionResults, getDuplicateAlbums);
 
 function getOptions(params) {
   return {
@@ -160,13 +162,13 @@ function partitionResults(req, res, next) {
   next();
 }
 
-function getDuplicates(req, res, next) {
+function getDuplicateTracks(req, res, next) {
   let matched = {};
   let partitioned = res.locals.partitioned;
   for (let artist of Object.keys(partitioned)) {
-    partitioned[artist].sort();
+    partitioned[artist].sort((a, b) => sortResults(a, b));
     for (let i = 0; i < partitioned[artist].length - 1; i++) {
-      if (isDuplicateTrack(partitioned[artist][i], partitioned[artist][i + 1])) {
+      if (rules.isDuplicateTrack(partitioned[artist][i], partitioned[artist][i + 1])) {
         // TODO: If a match is found, compare against the next track to find multiple duplicates
         if (!matched[artist]) {
           matched[artist] = [{track1: partitioned[artist][i], track2: partitioned[artist][i + 1]}];
@@ -179,6 +181,38 @@ function getDuplicates(req, res, next) {
   end = performance.now();
   console.log(end - start);
   res.status(200).json(matched);
+}
+
+function getDuplicateAlbums(req, res, next) {
+  let matched = {};
+  let partitioned = res.locals.partitioned;
+  for (let artist of Object.keys(partitioned)) {
+    partitioned[artist].sort((a, b) => sortResults(a, b));
+    for (let i = 0; i < partitioned[artist].length - 1; i++) {
+      if (rules.isDuplicateAlbum(partitioned[artist][i], partitioned[artist][i + 1])) {
+        // TODO: If a match is found, compare against the next track to find multiple duplicates
+        if (!matched[artist]) {
+          matched[artist] = [{track1: partitioned[artist][i], track2: partitioned[artist][i + 1]}];
+        } else {
+          matched[artist].push({track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
+        }
+      }
+    }
+  }
+  end = performance.now();
+  console.log(end - start);
+  res.status(200).json(matched);
+}
+
+function sortResults(a, b) {
+  a = a.replace(/:|\//g,' ').replace(/[^A-Za-z0-9\s]/g, '').toLowerCase();
+  b = b.replace(/:|\//g,' ').replace(/[^A-Za-z0-9\s]/g, '').toLowerCase();
+  if (a > b) {
+    return 1;
+  } else if (a < b) {
+    return -1;
+  }
+  return 0;
 }
 
 const port = process.env.PORT || 3001;

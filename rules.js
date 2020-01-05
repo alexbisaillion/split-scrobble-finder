@@ -16,6 +16,24 @@ function isDuplicateTrack(track1, track2) {
   return isMatched(track1, track2);
 }
 
+function isDuplicateAlbum(album1, album2) {
+  album1 = album1.toLowerCase();
+  album2 = album2.toLowerCase();
+
+  album1 = stripAlbumTag(album1);
+  album2 = stripAlbumTag(album2);
+
+  if (stringSimilarity.compareTwoStrings(album1, album2) < 0.5) {
+    if (!album1.startsWith(album2) && !album2.startsWith(album1)) {
+      return false;
+    }
+  }
+  if (isExempt(album1, album2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'])) {
+    return false;
+  }
+  return isMatched(album1, album2);
+}
+
 function isExempt(track1, track2, exemptKeywords) {
   for (keyword of exemptKeywords) {
     let isTrack1Matched = track1.includes(keyword);
@@ -27,15 +45,15 @@ function isExempt(track1, track2, exemptKeywords) {
   return false;
 }
 
-function isMatched(track1, track2) {
+function isMatched(str1, str2) {
   let track1Features;
-  if (containsFeatureTag(track1)) {
-    track1Features = getFeaturedArtists(track1);
+  if (containsFeatureTag(str1)) {
+    track1Features = getFeaturedArtists(str1);
   }
 
   let track2Features;
-  if (containsFeatureTag(track2)) {
-    track2Features = getFeaturedArtists(track2);
+  if (containsFeatureTag(str2)) {
+    track2Features = getFeaturedArtists(str2);
   }
 
   if (track1Features && track2Features) {
@@ -43,8 +61,8 @@ function isMatched(track1, track2) {
       return false;
     }
 
-    let excess1 = track1.replace(track1Features, '');
-    let excess2 = track2.replace(track2Features, '');
+    let excess1 = str1.replace(track1Features, '');
+    let excess2 = str2.replace(track2Features, '');
 
     excess1 = stripNonAlphaNumeric(excess1);
     excess2 = stripNonAlphaNumeric(excess2);
@@ -57,17 +75,17 @@ function isMatched(track1, track2) {
     }
   }
 
-  track1 = stripNonAlphaNumeric(track1);
-  track2 = stripNonAlphaNumeric(track2);
+  str1 = stripNonAlphaNumeric(str1);
+  str2 = stripNonAlphaNumeric(str2);
 
-  track1 = stripExcessWhitespace(track1);
-  track2 = stripExcessWhitespace(track2);
+  str1 = stripExcessWhitespace(str1);
+  str2 = stripExcessWhitespace(str2);
 
-  track1 = stripFeatureTag(track1);
-  track2 = stripFeatureTag(track2);
+  str1 = stripFeatureTag(str1);
+  str2 = stripFeatureTag(str2);
   
-  let words = getWords(track1, track2);
-
+  let words = getWords(str1, str2);
+  
   if (!analyzeWords(words.split1, words.split2)) {
     return false;
   }
@@ -75,31 +93,31 @@ function isMatched(track1, track2) {
   return true;
 }
 
-function stripNonAlphaNumeric(track) {
-  track = track.replace(/:|\//g,' '); // it is likely that a slash or a colon separates two words, so the words should be kept separate
-  return track.replace(/[^A-Za-z0-9\s]/g, '');
+function stripNonAlphaNumeric(str) {
+  str = str.replace(/:|\//g,' '); // it is likely that a slash or a colon separates two words, so the words should be kept separate
+  return str.replace(/[^A-Za-z0-9\s]/g, '');
 }
 
-function stripExcessWhitespace(track) {
-  return track.replace(/\s\s+/g, ' ').trim();
+function stripExcessWhitespace(str) {
+  return str.replace(/\s\s+/g, ' ').trim();
 }
 
-function getWords(track1, track2) {
-  let split1 = track1.split(' ');
-  let split2 = track2.split(' ');
+function getWords(str1, str2) {
+  let split1 = str1.split(' ');
+  let split2 = str2.split(' ');
 
   let length = split1.length > split2.length ? split1.length : split2.length;
-  for (let i = 0; i < length; i++) {
+  // Search for extraneous words within the string, starting at the second word
+  for (let i = 1; i < length; i++) {
     if (!split1[i] || !split2[i]) {
       break;
     }
-    if (split1[i].length < 2 && split2[i].length >= 2) {
-      if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > 0.9) {
+
+    if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.5) {
+      if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > stringSimilarity.compareTwoStrings(split1[i], split2[i])) {
         split1.splice(i, 1);
-        i--;  
-      }
-    } else if (split2[i].length < 2 && split1[i].length >= 2) {
-      if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > 0.9) {
+        i--;
+      } else if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > stringSimilarity.compareTwoStrings(split2[i], split1[i])) {
         split2.splice(i, 1);
         i--;  
       }
@@ -131,7 +149,6 @@ function analyzeWords(split1, split2) {
       continue;
     }
 
-    //console.log(split1[i] + ', ' + split2[i] + ', ' + stringSimilarity.compareTwoStrings(split1[i], split2[i]));
     if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.80) {
       return false;
     }
@@ -139,23 +156,23 @@ function analyzeWords(split1, split2) {
   return true;
 }
 
-function containsFeatureTag(track) {
+function containsFeatureTag(str) {
   for (let featKeyword of featKeywords) {
-    if (track.includes(featKeyword)) {
+    if (str.includes(featKeyword)) {
       return true;
     }
   }
   return false;
 }
 
-function getFeaturedArtists(track) {
-  if (track.includes('(') || track.includes('[')) {
+function getFeaturedArtists(str) {
+  if (str.includes('(') || str.includes('[')) {
     let matches = [];
-    let roundBracketMatches = track.match(/\(([^)]+)\)/g);
+    let roundBracketMatches = str.match(/\(([^)]+)\)/g);
     if (roundBracketMatches) {
       matches.push(...roundBracketMatches);
     }
-    let squareBracketMatches = track.match(/\[(.*?)\]/g);
+    let squareBracketMatches = str.match(/\[(.*?)\]/g);
     if (squareBracketMatches) {
       matches.push(...squareBracketMatches);
     }
@@ -168,32 +185,32 @@ function getFeaturedArtists(track) {
     }
   } else {
     for (let featKeyword of featKeywords) {
-      if (track.includes(featKeyword)) {
-        return track.substring(track.indexOf(featKeyword) + featKeyword.length, track.length);
+      if (str.includes(featKeyword)) {
+        return str.substring(str.indexOf(featKeyword) + featKeyword.length, str.length);
       }
     }
   }
 }
 
-function stripFeatureTag(track) {
+function stripFeatureTag(str) {
   for (let featKeyword of [' feat ', ' ft ', ' with ', ' featuring ']) {
-    if (track.includes(featKeyword)) {
-      track = track.substring(0, track.indexOf(featKeyword));
+    if (str.includes(featKeyword)) {
+      str = str.substring(0, str.indexOf(featKeyword));
       break;
     }
   }
-  return track;
+  return str;
 }
 
-function analyzeFeatureTagExcess(track1, track2) {
+function analyzeFeatureTagExcess(str1, str2) {
   let cutoff1;
   let cutoff2;
   for (let featKeyword of featKeywords) {
-    if (track1.includes(featKeyword)) {
-      cutoff1 = track1.substring(track1.indexOf(featKeyword) + featKeyword.length, track1.length);
+    if (str1.includes(featKeyword)) {
+      cutoff1 = str1.substring(str1.indexOf(featKeyword) + featKeyword.length, str1.length);
     }
-    if (track2.includes(featKeyword)) {
-      cutoff2 = track2.substring(track2.indexOf(featKeyword) + featKeyword.length, track2.length);
+    if (str2.includes(featKeyword)) {
+      cutoff2 = str2.substring(str2.indexOf(featKeyword) + featKeyword.length, str2.length);
     }
   }
 
@@ -223,4 +240,18 @@ function convertRomanNumToInt(romanNum) {
   return romanNum.split('').reduce(reducer, 0);
 }
 
-module.exports = isDuplicateTrack;
+function stripAlbumTag(str) {
+  for (let albumTag of ['deluxe', 'expanded', 'extended', 'single', ' ep', 'tour edition', 'explicit version', 'deluxe version', 'expanded version', 'extended version', 'deluxe edition', 'expanded edition', 'extended edition', 'bonus track', 'special edition']) {
+    if (str.includes(albumTag)) {
+      str = str.substring(0, str.indexOf(albumTag));
+      break;
+    }
+  }
+  str = str.replace('vol.', '');
+  return str; 
+}
+
+module.exports = {
+  isDuplicateTrack,
+  isDuplicateAlbum
+};
