@@ -35,7 +35,19 @@ function isDuplicateAlbum(album1, album2) {
 }
 
 function isDuplicateArtist(artist1, artist2) {
-  return stringSimilarity.compareTwoStrings(artist1, artist2) > 0.5;
+  artist1 = artist1.toLowerCase();
+  artist2 = artist2.toLowerCase();
+
+  if (stringSimilarity.compareTwoStrings(artist1, artist2) < 0.5) {
+    if (!artist1.startsWith(artist2) && !artist2.startsWith(artist1)) {
+      return false;
+    }
+  }
+
+  if (analyzeArtistList(artist1, artist2)) {
+    return true;
+  }
+  return isMatched(artist1, artist2);
 }
 
 function isExempt(track1, track2, exemptKeywords) {
@@ -90,11 +102,10 @@ function isMatched(str1, str2) {
   
   let words = getWords(str1, str2);
   
-  if (!analyzeWords(words.split1, words.split2)) {
-    return false;
+  if (words.split1.length === 1 && words.split2.length === 1) {
+    return words.split1[0] === words.split2[0];
   }
-
-  return true;
+  return analyzeWords(words.split1, words.split2);
 }
 
 function stripNonAlphaNumeric(str) {
@@ -253,6 +264,30 @@ function stripAlbumTag(str) {
   }
   str = str.replace('vol.', '');
   return str; 
+}
+
+function analyzeArtistList(artist1, artist2) {
+  let isArtist1List = artist1.includes('&') || artist1.includes(',');
+  let isArtist2List = artist2.includes('&') || artist2.includes(',');
+  if (isArtist1List) {
+    let artists1 = artist1.split(/,|&/g).map(str => stripExcessWhitespace(str));
+    if (isArtist2List) {
+      let artists2 = stripExcessWhitespace(artist2).split(/,|&/g).map(str => stripExcessWhitespace(str));
+      if (artists1.filter(artist => artists2.includes(artist)).length > 0) {
+        return true;
+      }
+    } else {
+      if (artists1.includes(artist2)) {
+        return true;
+      }
+    }
+  } else if (isArtist2List) {
+    let artists2 = stripExcessWhitespace(artist2).split(/,|&/g).map(str => stripExcessWhitespace(str));
+    if (artists2.includes(artist1)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 module.exports = {
