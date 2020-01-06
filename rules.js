@@ -34,6 +34,10 @@ function isDuplicateAlbum(album1, album2) {
   return isMatched(album1, album2);
 }
 
+function isDuplicateArtist(artist1, artist2) {
+  return stringSimilarity.compareTwoStrings(artist1, artist2) > 0.5;
+}
+
 function isExempt(track1, track2, exemptKeywords) {
   for (keyword of exemptKeywords) {
     let isTrack1Matched = track1.includes(keyword);
@@ -253,5 +257,6 @@ function stripAlbumTag(str) {
 
 module.exports = {
   isDuplicateTrack,
-  isDuplicateAlbum
+  isDuplicateAlbum,
+  isDuplicateArtist
 };

@@ -4,9 +4,8 @@ const request = require('request');
 const credentials = require('./credentials');
 const rules = require('./rules');
 const app = express();
-const fs = require('fs');
-
 const { performance } = require('perf_hooks');
+
 let start;
 let end;
 
@@ -15,6 +14,7 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 app.get('/tracks', validateReq, getNumTracks, getTracks, partitionResults, getDuplicateTracks);
 app.get('/albums', validateReq, getNumAlbums, getAlbums, partitionResults, getDuplicateAlbums);
+app.get('/artists', validateReq, getNumArtists, getArtists, getDuplicateArtists);
 
 function getOptions(params) {
   return {
@@ -86,6 +86,27 @@ function getNumAlbums(req, res, next) {
   });
 }
 
+function getNumArtists(req, res, next) {
+  request(getOptions({method: 'user.getTopArtists', user: req.query.user, limit: 1}), function (error, response, body) {
+    if (error) {
+      console.log('Internal server error: ' + error);
+      res.status(500).json({error: 'Internal error.'});
+    } else if (response.statusCode != 200) {
+      console.log('Last.fm API error in getNumArtists');
+      let errMessage = 'Last.fm error';
+      if (JSON.parse(body).message) {
+        errMessage += ': ' + JSON.parse(body).message;
+      }
+      res.status(400).json({error: errMessage});
+    } else {
+      res.locals.numArtists = JSON.parse(body)['topartists']['@attr']['total'];
+      res.locals.pageNum  = 1;
+      res.locals.results = [];
+      next();
+    }
+  });
+}
+
 function getTracks(req, res, next) {
   getPage();
   function getPage() {
@@ -148,6 +169,37 @@ function getAlbums(req, res, next) {
   }
 }
 
+function getArtists(req, res, next) {
+  getPage();
+  function getPage() {
+    request(getOptions({method: 'user.getTopArtists', user: req.query.user, limit: 1000, page: res.locals.pageNum}), function (error, response, body) {
+      if (error) {
+        console.log('Internal server error: ' + error);
+        res.status(500).json({error: 'Internal error.'});
+      } else if (response.statusCode != 200) {
+        console.log('Last.fm API error in getArtists');
+        let errMessage = 'Last.fm error';
+        if (JSON.parse(body).message) {
+          errMessage += ': ' + JSON.parse(body).message;
+        }
+        res.status(400).json({error: errMessage});
+      } else if (!JSON.parse(body).topartists) {
+        console.log('Last.fm API error - no topartists');
+        res.status(500).json({error: 'Internal error.'});
+      } else {
+        res.locals.results.push(...JSON.parse(body).topartists.artist.map(a => a.name));
+        if (res.locals.numArtists - 1000 > 0) {
+          res.locals.numArtists = res.locals.numArtists - 1000;
+          res.locals.pageNum = res.locals.pageNum + 1;
+          getPage();
+        } else {
+          next();
+        }
+      }
+    });
+  }
+}
+
 function partitionResults(req, res, next) {
   let partitioned = {};
   let results = res.locals.results;
@@ -197,6 +249,19 @@ function getDuplicateAlbums(req, res, next) {
           matched[artist].push({track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
         }
       }
+    }
+  }
+  end = performance.now();
+  console.log(end - start);
+  res.status(200).json(matched);
+}
+
+function getDuplicateArtists(req, res, next) {
+  let matched = [];
+  res.locals.results.sort((a, b) => sortResults(a, b));
+  for (let i = 0; i < res.locals.results.length - 1; i++) {
+    if (rules.isDuplicateArtist(res.locals.results[i], res.locals.results[i + 1])) {
+      matched.push({artist1: res.locals.results[i], artist2: res.locals.results[i + 1]});
     }
   }
   end = performance.now();
