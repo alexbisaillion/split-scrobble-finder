@@ -1,12 +1,10 @@
 
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import Avatar from '@material-ui/core/Avatar';
 import Paper from '@material-ui/core/Paper';
-import LastFm from './LastFm';
+import TableEntry from './TableEntry';
 
 const DuplicateTable = (props) => {
-  let urlSeparator = props.type === 'tracks' ? '_/' : '';
   return (
     <div style={{width: '60%'}}>
       {Object.keys(props.results).map((artist) => (
@@ -16,24 +14,7 @@ const DuplicateTable = (props) => {
           </a>
           <div style={{display: 'flex', flexDirection: 'column'}}>
             {props.results[artist].map(results =>
-              <div style={{display: 'flex', flexDirection: 'row'}}>
-                <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
-                  <a href={`https://www.last.fm/user/${props.user}/library/music/${encodeURI(artist)}/${urlSeparator}${encodeURI(results.result1)}`} target="_blank" rel="noopener noreferrer"style={{textDecoration: 'none'}}>
-                    <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
-                      <LastFm></LastFm>
-                    </Avatar>
-                  </a>
-                  <Typography>{results.result1}</Typography>
-                </div>
-                <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
-                  <a href={`https://www.last.fm/user/${props.user}/library/music/${encodeURI(artist)}/${urlSeparator}${encodeURI(results.result2)}`} target="_blank" rel="noopener noreferrer"style={{textDecoration: 'none'}}>
-                    <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
-                      <LastFm></LastFm>
-                    </Avatar>
-                  </a>
-                  <Typography>{results.result2}</Typography>
-                </div>
-              </div>
+              <TableEntry type={props.type} results={results} user={props.user} artist={artist}></TableEntry>
             )}
           </div>
         </Paper>
