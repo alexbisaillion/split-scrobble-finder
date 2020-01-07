@@ -6,11 +6,13 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import './MainPage.css';
 import { withStyles } from "@material-ui/core/styles";
-import DuplicateTrackTable from './DuplicateTrackTable';
+import DuplicateTable from './DuplicateTable';
 import {createMuiTheme, MuiThemeProvider} from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import green from '@material-ui/core/colors/green';
 import blue from '@material-ui/core/colors/blue';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 
 const styles = theme => ({
   root: {
@@ -36,7 +38,7 @@ const theme = createMuiTheme({
 class MainPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {reqType: 'tracks', user: '', isLoading: false, results: {}, error: ''};
+    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, results: {}, error: ''};
     this.handleInputChange = this.handleInputChange.bind(this);
     this.makeRequest = this.makeRequest.bind(this);
   }
@@ -44,7 +46,7 @@ class MainPage extends Component {
   makeRequest(event) {
     if (this.state.reqType && !this.state.isLoading) {
       this.setState({isLoading: true}, () => {
-        fetch(`/${this.state.reqType}?user=${this.state.user}`).then(response => {
+        fetch(`/${this.state.reqType}?user=${this.state.user}&useRules=${this.state.useRules}`).then(response => {
           if (response.status === 200) {
             response.json().then(res => {
               this.setState({ results: res, isLoading: false, error: '' });
@@ -55,13 +57,13 @@ class MainPage extends Component {
             });
           }
         })
-      });    
+      });
     }
     event.preventDefault();
   }
 
   handleInputChange(event) {
-    this.setState({ [event.target.name] : event.target.value});
+    this.setState({ [event.target.name] : event.target.name === 'useRules' ? event.target.checked : event.target.value});
   }
 
   render() {
@@ -71,9 +73,7 @@ class MainPage extends Component {
       resultsView = <LinearProgress variant="query" style={{width: '100%'}}/>;
     } else {
       if (this.state.results) {
-        if (this.state.reqType === 'tracks') {
-          resultsView = <DuplicateTrackTable user={this.state.user} results={this.state.results}></DuplicateTrackTable>;
-        }
+        resultsView = <DuplicateTable user={this.state.user} results={this.state.results} type={this.state.reqType}></DuplicateTable>;
       } else {
         resultsView = <Typography variant='body1'>{this.state.error}</Typography>
       }
@@ -90,6 +90,11 @@ class MainPage extends Component {
                 <MenuItem value={'artists'}>Artists</MenuItem>
               </Select>
               <TextField className={classes.formElement} name='user' label='Username' onChange={this.handleInputChange}/>
+              <FormControlLabel
+                className={classes.formElement}
+                control={<Switch name='useRules' value={this.state.useRules} checked={this.state.useRules} onChange={this.handleInputChange} />}
+                label="Use rules"
+              />
               <Button className={classes.formElement} variant='contained' type='submit'>Submit</Button>
             </div>
           </form>

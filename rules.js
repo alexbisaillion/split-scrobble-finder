@@ -2,7 +2,11 @@ const stringSimilarity = require('string-similarity');
 const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
 
-function isDuplicateTrack(track1, track2) {
+function isDuplicateTrack(track1, track2, useRules) {
+  if (!useRules) {
+    return stringSimilarity.compareTwoStrings(track1, track2) > 0.5;
+  }
+
   track1 = track1.toLowerCase();
   track2 = track2.toLowerCase();
   if (stringSimilarity.compareTwoStrings(track1, track2) < 0.5) {
@@ -16,7 +20,11 @@ function isDuplicateTrack(track1, track2) {
   return isMatched(track1, track2);
 }
 
-function isDuplicateAlbum(album1, album2) {
+function isDuplicateAlbum(album1, album2, useRules) {
+  if (!useRules) {
+    return stringSimilarity.compareTwoStrings(album1, album2) > 0.5;
+  }
+  
   album1 = album1.toLowerCase();
   album2 = album2.toLowerCase();
 
@@ -34,7 +42,11 @@ function isDuplicateAlbum(album1, album2) {
   return isMatched(album1, album2);
 }
 
-function isDuplicateArtist(artist1, artist2) {
+function isDuplicateArtist(artist1, artist2, useRules) {
+  if (!useRules) {
+    return stringSimilarity.compareTwoStrings(artist1, artist2) > 0.5;
+  }
+
   artist1 = artist1.toLowerCase();
   artist2 = artist2.toLowerCase();
 

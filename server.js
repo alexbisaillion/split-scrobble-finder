@@ -36,6 +36,7 @@ function getURL(params) {
 }
 
 function validateReq(req, res, next) {
+  req.query.useRules = req.query.useRules.toLowerCase() === 'true' ? true : false;
   if (req.query.user) {
     start = performance.now();
     next();
@@ -220,12 +221,12 @@ function getDuplicateTracks(req, res, next) {
   for (let artist of Object.keys(partitioned)) {
     partitioned[artist].sort((a, b) => sortResults(a, b));
     for (let i = 0; i < partitioned[artist].length - 1; i++) {
-      if (rules.isDuplicateTrack(partitioned[artist][i], partitioned[artist][i + 1])) {
+      if (rules.isDuplicateTrack(partitioned[artist][i], partitioned[artist][i + 1], req.query.useRules)) {
         // TODO: If a match is found, compare against the next track to find multiple duplicates
         if (!matched[artist]) {
-          matched[artist] = [{track1: partitioned[artist][i], track2: partitioned[artist][i + 1]}];
+          matched[artist] = [{result1: partitioned[artist][i], result2: partitioned[artist][i + 1]}];
         } else {
-          matched[artist].push({track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
+          matched[artist].push({result1: partitioned[artist][i], result2: partitioned[artist][i + 1]});
         }
       }
     }
@@ -241,12 +242,12 @@ function getDuplicateAlbums(req, res, next) {
   for (let artist of Object.keys(partitioned)) {
     partitioned[artist].sort((a, b) => sortResults(a, b));
     for (let i = 0; i < partitioned[artist].length - 1; i++) {
-      if (rules.isDuplicateAlbum(partitioned[artist][i], partitioned[artist][i + 1])) {
+      if (rules.isDuplicateAlbum(partitioned[artist][i], partitioned[artist][i + 1], req.query.useRules)) {
         // TODO: If a match is found, compare against the next track to find multiple duplicates
         if (!matched[artist]) {
-          matched[artist] = [{track1: partitioned[artist][i], track2: partitioned[artist][i + 1]}];
+          matched[artist] = [{result1: partitioned[artist][i], result2: partitioned[artist][i + 1]}];
         } else {
-          matched[artist].push({track1: partitioned[artist][i], track2: partitioned[artist][i + 1]});
+          matched[artist].push({result1: partitioned[artist][i], result2: partitioned[artist][i + 1]});
         }
       }
     }
@@ -260,8 +261,8 @@ function getDuplicateArtists(req, res, next) {
   let matched = [];
   res.locals.results.sort((a, b) => sortResults(a, b));
   for (let i = 0; i < res.locals.results.length - 1; i++) {
-    if (rules.isDuplicateArtist(res.locals.results[i], res.locals.results[i + 1])) {
-      matched.push({artist1: res.locals.results[i], artist2: res.locals.results[i + 1]});
+    if (rules.isDuplicateArtist(res.locals.results[i], res.locals.results[i + 1], req.query.useRules)) {
+      matched.push({result1: res.locals.results[i], result2: res.locals.results[i + 1]});
     }
   }
   end = performance.now();
