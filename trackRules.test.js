@@ -82,6 +82,9 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
   test('Check if track with excess feature and a title with different casing is a duplicate', () => {
     expect(rules.isDuplicateTrack('PrimeTime', 'Primetime (feat. Miguel)', true)).toBe(true);
   });
+  test('Check if different remix artists are not stripped and marked as a duplicate', () => {
+    expect(rules.isDuplicateTrack('Sylvia Says (Breakbot Remix)', 'Sylvia Says (Tensnake Remix)', true)).toBe(false);
+  });
 });
 
 describe('Check if the isDuplicateTrack method successfully detects non duplicates', () => {
@@ -165,8 +168,5 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   });
   test('Check if the album version of a song is not a duplicate', () => {
     expect(rules.isDuplicateTrack('Datwhip (interlude)', 'Dntstop (interlude)', true)).toBe(false);
-  });
-  test('Check if different remix artists are not stripped and marked as a duplicate', () => {
-    expect(rules.isDuplicateTrack('Sylvia Says (Breakbot Remix)', 'Sylvia Says (Tensnake Remix)', true)).toBe(false);
   });
 });
