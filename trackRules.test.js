@@ -166,4 +166,7 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   test('Check if the album version of a song is not a duplicate', () => {
     expect(rules.isDuplicateTrack('Datwhip (interlude)', 'Dntstop (interlude)', true)).toBe(false);
   });
+  test('Check if different remix artists are not stripped and marked as a duplicate', () => {
+    expect(rules.isDuplicateTrack('Sylvia Says (Breakbot Remix)', 'Sylvia Says (Tensnake Remix)', true)).toBe(false);
+  });
 });
