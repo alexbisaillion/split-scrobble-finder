@@ -1,6 +1,8 @@
 const stringSimilarity = require('string-similarity');
 const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
+const exemptKeywords = ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'];
+const albumKeywords = ['deluxe', 'expanded', 'extended', 'single', ' ep', 'tour edition', 'explicit version', 'deluxe version', 'expanded version', 'extended version', 'deluxe edition', 'expanded edition', 'extended edition', 'bonus track', 'special edition'];
 
 function isDuplicateTrack(track1, track2, useRules) {
   if (!useRules) {
@@ -14,7 +16,7 @@ function isDuplicateTrack(track1, track2, useRules) {
       return false;
     }
   }
-  if (isExempt(track1, track2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'])) {
+  if (isExempt(track1, track2, exemptKeywords)) {
     return false;
   }
   return isMatched(track1, track2);
@@ -36,7 +38,7 @@ function isDuplicateAlbum(album1, album2, useRules) {
       return false;
     }
   }
-  if (isExempt(album1, album2, ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'])) {
+  if (isExempt(album1, album2, exemptKeywords)) {
     return false;
   }
   return isMatched(album1, album2);
@@ -111,9 +113,9 @@ function isMatched(str1, str2) {
 
   str1 = stripFeatureTag(str1);
   str2 = stripFeatureTag(str2);
-  
+
   let words = getWords(str1, str2);
-  
+
   if (words.split1.length === 1 && words.split2.length === 1) {
     return words.split1[0] === words.split2[0];
   }
@@ -135,16 +137,16 @@ function getWords(str1, str2) {
 
   let length = split1.length > split2.length ? split1.length : split2.length;
   // Search for extraneous words within the string, starting at the second word
-  for (let i = 1; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     if (!split1[i] || !split2[i]) {
       break;
     }
 
     if (stringSimilarity.compareTwoStrings(split1[i], split2[i]) < 0.5) {
-      if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > stringSimilarity.compareTwoStrings(split1[i], split2[i])) {
+      if (split1[i + 1] && stringSimilarity.compareTwoStrings(split1[i + 1], split2[i]) > stringSimilarity.compareTwoStrings(split1[i], split2[i]) && !exemptKeywords.includes(split1[i + 1])) {
         split1.splice(i, 1);
         i--;
-      } else if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > stringSimilarity.compareTwoStrings(split2[i], split1[i])) {
+      } else if (split2[i + 1] && stringSimilarity.compareTwoStrings(split2[i + 1], split1[i]) > stringSimilarity.compareTwoStrings(split2[i], split1[i]) && !exemptKeywords.includes(split2[i + 1])) {
         split2.splice(i, 1);
         i--;  
       }
@@ -268,7 +270,7 @@ function convertRomanNumToInt(romanNum) {
 }
 
 function stripAlbumTag(str) {
-  for (let albumTag of ['deluxe', 'expanded', 'extended', 'single', ' ep', 'tour edition', 'explicit version', 'deluxe version', 'expanded version', 'extended version', 'deluxe edition', 'expanded edition', 'extended edition', 'bonus track', 'special edition']) {
+  for (let albumTag of albumKeywords) {
     if (str.includes(albumTag)) {
       str = str.substring(0, str.indexOf(albumTag));
       break;
