@@ -51,39 +51,21 @@ function sortResults(a, b) {
 class MainPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, results: {}, error: ''};
+    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, loadPercent: 0, results: {}, error: ''};
     this.handleInputChange = this.handleInputChange.bind(this);
     this.makeRequest = this.makeRequest.bind(this);
     this.getPage = this.getPage.bind(this);
     this.partitionResults = this.partitionResults.bind(this);
   }
 
-  // makeRequest(event) {
-  //   if (this.state.reqType && !this.state.isLoading) {
-  //     this.setState({isLoading: true}, () => {
-  //       fetch(`/${this.state.reqType}?user=${this.state.user}&useRules=${this.state.useRules}`).then(response => {
-  //         if (response.status === 200) {
-  //           response.json().then(res => {
-  //             this.setState({ results: this.state.reqType === 'artists' ? {matches: res} : res, isLoading: false, error: '' });
-  //           });
-  //         } else {
-  //           response.json().then(res => {
-  //             this.setState({ results: '', isLoading: false, error: res.error });
-  //           });
-  //         }
-  //       })
-  //     });
-  //   }
-  //   event.preventDefault();
-  // }
-
   makeRequest(event) {
     if (this.state.reqType && !this.state.isLoading) {
-      this.setState({isLoading: true}, () => {
+      this.setState({isLoading: true, loadPercent: 0}, () => {
         fetch(`/num${this.state.reqType}?user=${this.state.user}`).then(response => {
           if (response.status === 200) {
             response.text().then(t => {
-              this.getPage(parseInt(t), 1, []);
+              let percentStep = Math.ceil(100 / (Math.ceil(parseInt(t) / 1000)));
+              this.getPage(parseInt(t), 1, [], percentStep);
             })
           } else {
             response.json().then(res => {
@@ -96,18 +78,21 @@ class MainPage extends Component {
     event.preventDefault();
   }
 
-  getPage(total, pageNum, results) {
+  getPage(total, pageNum, results, percentStep) {
     fetch(`/${this.state.reqType}?user=${this.state.user}&pageNum=${pageNum}`).then(response => {
       if (response.status === 200) {
         response.json().then(res => {
           results.push(...res);
           if (total - 1000 > 0) {
-            this.getPage(total - 1000, pageNum + 1, results);
+            this.setState({ loadPercent: this.state.loadPercent + percentStep });
+            this.getPage(total - 1000, pageNum + 1, results, percentStep);
           } else {
             if (this.state.reqType === 'artists') {
-              this.getDuplicateArtists(results);
+              this.setState({ loadPercent: this.state.loadPercent + percentStep });
+              this.getDuplicateArtists(results, percentStep);
             } else {
-              this.partitionResults(results);
+              this.setState({ loadPercent: this.state.loadPercent + percentStep });
+              this.partitionResults(results, percentStep);
             }
           }
         });
@@ -119,7 +104,7 @@ class MainPage extends Component {
     });
   }
 
-  partitionResults(results) {
+  partitionResults(results, percentStep) {
     let partitioned = {};
     for (let i = 0; i < results.length; i++) {
       if (!partitioned[results[i].artist]) {
@@ -129,8 +114,10 @@ class MainPage extends Component {
       }
     }
     if (this.state.reqType === 'tracks') {
+      this.setState({ loadPercent: this.state.loadPercent + percentStep });
       this.getDuplicateTracks(partitioned);
     } else {
+      this.setState({ loadPercent: this.state.loadPercent + percentStep });
       this.getDuplicateAlbums(partitioned);
     }
   }
@@ -150,7 +137,7 @@ class MainPage extends Component {
         }
       }
     }
-    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '' });
+    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
 
   getDuplicateAlbums(partitioned) {
@@ -168,7 +155,7 @@ class MainPage extends Component {
         }
       }
     }
-    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '' });
+    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
   
   getDuplicateArtists(results) {
@@ -179,7 +166,7 @@ class MainPage extends Component {
         matched.push({result1: results[i], result2: results[i + 1]});
       }
     }
-    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '' });
+    this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
 
   handleInputChange(event) {
@@ -193,7 +180,7 @@ class MainPage extends Component {
     const { classes } = this.props;
     let resultsView;
     if (this.state.isLoading) {
-      resultsView = <LinearProgress variant="query" style={{width: '100%'}}/>;
+      resultsView = <LinearProgress variant="determinate" value={this.state.loadPercent} style={{width: '100%'}}/>
     } else {
       if (this.state.results) {
         if (this.state.reqType === 'albums' || this.state.reqType === 'tracks') {
