@@ -13,6 +13,7 @@ import green from '@material-ui/core/colors/green';
 import blue from '@material-ui/core/colors/blue';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import DuplicateArtistTable from './DuplicateArtistTable';
 
 const styles = theme => ({
   root: {
@@ -49,7 +50,7 @@ class MainPage extends Component {
         fetch(`/${this.state.reqType}?user=${this.state.user}&useRules=${this.state.useRules}`).then(response => {
           if (response.status === 200) {
             response.json().then(res => {
-              this.setState({ results: res, isLoading: false, error: '' });
+              this.setState({ results: this.state.reqType === 'artists' ? {matches: res} : res, isLoading: false, error: '' });
             })
           } else {
             response.json().then(res => {
@@ -73,7 +74,11 @@ class MainPage extends Component {
       resultsView = <LinearProgress variant="query" style={{width: '100%'}}/>;
     } else {
       if (this.state.results) {
-        resultsView = <DuplicateTable user={this.state.user} results={this.state.results} type={this.state.reqType}></DuplicateTable>;
+        if (this.state.reqType === 'albums' || this.state.reqType === 'tracks') {
+          resultsView = <DuplicateTable user={this.state.user} results={this.state.results} type={this.state.reqType}></DuplicateTable>;
+        } else if (this.state.results.matches) {
+          resultsView = <DuplicateArtistTable user={this.state.user} results={this.state.results.matches}></DuplicateArtistTable>
+        }
       } else {
         resultsView = <Typography variant='body1'>{this.state.error}</Typography>
       }

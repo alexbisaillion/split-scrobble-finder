@@ -4,26 +4,36 @@ import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
 import LastFm from './LastFm';
 
+const baseURL = (user, artist) => `https://www.last.fm/user/${user}/library/music/${encodeStr(artist)}`;
+const encodeStr = (str) => encodeURI(str).replace(/\+/g, '%252B').replace(/%20/g, '+'); 
+const suffix = (type, result) => (type === 'tracks' ? `/_/` : '/') + encodeStr(result);
+
+const Cell = (props) => {
+  return (
+    <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
+      <a href={props.link} target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none'}}>
+        <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
+          <LastFm></LastFm>
+        </Avatar>
+      </a>
+      <Typography>{props.result}</Typography>
+    </div>
+  )
+}
+
 const TableEntry = (props) => {
-  let urlSeparator = props.type === 'tracks' ? '_/' : '';
+  let result1Link = baseURL(props.user, props.artist);
+  let result2Link = baseURL(props.user, props.artist);
+
+  if (props.type !== 'artists') {
+    result1Link += suffix(props.type, props.results.result1);
+    result2Link += suffix(props.type, props.results.result2);
+  }
+
   return (
     <div style={{display: 'flex', flexDirection: 'row'}}>
-      <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
-        <a href={`https://www.last.fm/user/${props.user}/library/music/${encodeURI(props.artist)}/${urlSeparator}${encodeURI(props.results.result1)}`} target="_blank" rel="noopener noreferrer"style={{textDecoration: 'none'}}>
-          <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
-            <LastFm></LastFm>
-          </Avatar>
-        </a>
-        <Typography>{props.results.result1}</Typography>
-      </div>
-      <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
-        <a href={`https://www.last.fm/user/${props.user}/library/music/${encodeURI(props.artist)}/${urlSeparator}${encodeURI(props.results.result2)}`} target="_blank" rel="noopener noreferrer"style={{textDecoration: 'none'}}>
-          <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
-            <LastFm></LastFm>
-          </Avatar>
-        </a>
-        <Typography>{props.results.result2}</Typography>
-      </div>
+      <Cell link={result1Link} result={props.results.result1}></Cell>
+      <Cell link={result2Link} result={props.results.result2}></Cell>
     </div>
   );
 };
