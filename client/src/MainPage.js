@@ -51,7 +51,7 @@ class MainPage extends Component {
           if (response.status === 200) {
             response.json().then(res => {
               this.setState({ results: this.state.reqType === 'artists' ? {matches: res} : res, isLoading: false, error: '' });
-            })
+            });
           } else {
             response.json().then(res => {
               this.setState({ results: '', isLoading: false, error: res.error });
@@ -64,6 +64,9 @@ class MainPage extends Component {
   }
 
   handleInputChange(event) {
+    if (event.target.name === 'reqType') {
+      this.setState({ results: {} });
+    }
     this.setState({ [event.target.name] : event.target.name === 'useRules' ? event.target.checked : event.target.value});
   }
 
@@ -89,7 +92,7 @@ class MainPage extends Component {
           <Typography variant="h2" style={{padding: '10px'}}>Split Scrobbler</Typography>
           <form onSubmit={this.makeRequest}>
             <div className='request-form' style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
-              <Select className={classes.formElement} name="reqType" value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
+              <Select className={classes.formElement} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
                 <MenuItem value={'tracks'}>Tracks</MenuItem>
                 <MenuItem value={'albums'}>Albums</MenuItem>
                 <MenuItem value={'artists'}>Artists</MenuItem>

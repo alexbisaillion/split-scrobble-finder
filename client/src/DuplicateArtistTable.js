@@ -6,7 +6,7 @@ import TableEntry from './TableEntry';
 const DuplicateArtistTable = (props) => {
   return (
     <div style={{width: '60%'}}>
-      <Paper style={{padding: '10px', marginBottom: '10px'}}>
+      <Paper style={{padding: '10px'}}>
         {props.results.map(result =>
           <TableEntry type={'artists'} results={result} user={props.user}></TableEntry>
         )}

@@ -10,13 +10,13 @@ const suffix = (type, result) => (type === 'tracks' ? `/_/` : '/') + encodeStr(r
 
 const Cell = (props) => {
   return (
-    <div style={{display: 'flex', flexDirection: 'row', margin: '5px', alignItems: 'center', width: '50%'}}>
-      <a href={props.link} target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none'}}>
-        <Avatar style={{marginLeft: '5px', marginRight: '5px'}}>
+    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', width: '50%'}}>
+      <a href={props.link} target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', padding: '5px'}}>
+        <Avatar>
           <LastFm></LastFm>
         </Avatar>
       </a>
-      <Typography>{props.result}</Typography>
+      <Typography style={{textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>{props.result}</Typography>
     </div>
   )
 }
