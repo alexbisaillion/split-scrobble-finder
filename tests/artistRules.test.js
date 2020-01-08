@@ -1,4 +1,4 @@
-const rules = require('./rules');
+const rules = require('../client/src/rules');
 
 describe('Check if the isDuplicateArtist method successfully detects duplicates', () => {
   test('Check if an artist contained in a \'&\' separated list of two artists is a duplicate', () => {

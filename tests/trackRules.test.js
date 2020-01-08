@@ -1,4 +1,4 @@
-const rules = require('./rules');
+const rules = require('../client/src/rules');
 
 describe('Check if the isDuplicateTrack method successfully detects duplicates', () => {
   test('Check if a track with an excess feature tag is a duplicate', () => {
