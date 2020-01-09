@@ -11,14 +11,17 @@ import {createMuiTheme, MuiThemeProvider} from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import green from '@material-ui/core/colors/green';
 import blue from '@material-ui/core/colors/blue';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import DuplicateArtistTable from './DuplicateArtistTable';
 import { isDuplicateTrack, isDuplicateAlbum, isDuplicateArtist } from './rules';
+import HelpIcon from './HelpIcon';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
 
 const styles = theme => ({
   root: {
-    margin: theme.spacing(4),
     textAlign: 'center',
     display: 'flex',
     flexDirection: 'column',
@@ -51,11 +54,12 @@ function sortResults(a, b) {
 class MainPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, loadPercent: 0, results: {}, error: ''};
+    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, loadPercent: 0, results: {}, error: '', dialogOpen: false};
     this.handleInputChange = this.handleInputChange.bind(this);
     this.makeRequest = this.makeRequest.bind(this);
     this.getPage = this.getPage.bind(this);
     this.partitionResults = this.partitionResults.bind(this);
+    this.HelpDialog = this.HelpDialog.bind(this);
   }
 
   makeRequest(event) {
@@ -176,6 +180,19 @@ class MainPage extends Component {
     this.setState({ [event.target.name] : event.target.name === 'useRules' ? event.target.checked : event.target.value});
   }
 
+  HelpDialog() {
+    return (
+      <Dialog onClose={() => this.setState({dialogOpen: false})} aria-labelledby="simple-dialog-title" open={this.state.dialogOpen}>
+        <DialogTitle id="simple-dialog-title">Using rules</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Selecting this option will use a custom ruleset I developed to help eliminate false duplicates. For example, "Human After All" and "Human After All - SebastiAn Remix" would be detected as a duplicate without using the ruleset.
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   render() {
     const { classes } = this.props;
     let resultsView;
@@ -196,7 +213,7 @@ class MainPage extends Component {
       <MuiThemeProvider theme={theme}>
         <div className={classes.root}>
           <Typography variant="h2" style={{padding: '10px'}}>Split Scrobbler</Typography>
-          <form onSubmit={this.makeRequest}>
+          <form onSubmit={this.makeRequest} style={{width: '250px'}}>
             <div className='request-form' style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
               <Select className={classes.formElement} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
                 <MenuItem value={'tracks'}>Tracks</MenuItem>
@@ -204,15 +221,18 @@ class MainPage extends Component {
                 <MenuItem value={'artists'}>Artists</MenuItem>
               </Select>
               <TextField className={classes.formElement} name='user' label='Username' onChange={this.handleInputChange}/>
-              <FormControlLabel
-                className={classes.formElement}
-                control={<Switch name='useRules' value={this.state.useRules} checked={this.state.useRules} onChange={this.handleInputChange} />}
-                label="Use rules"
-              />
+              <div className={classes.formElement} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                <Switch name='useRules' value={this.state.useRules} checked={this.state.useRules} onChange={this.handleInputChange} color='primary'/>
+                <Typography variant='body1' style={{marginRight: '30px'}}>Use rules</Typography>
+                <div onClick={() => this.setState({dialogOpen: true})}>
+                  <HelpIcon></HelpIcon>
+                </div>
+              </div>
               <Button className={classes.formElement} variant='contained' type='submit'>Submit</Button>
             </div>
           </form>
           {resultsView}
+          <this.HelpDialog open={this.state.dialogOpen} onClose={() => this.setState({dialogOpen: false})}></this.HelpDialog>
         </div>
       </MuiThemeProvider>
     );
