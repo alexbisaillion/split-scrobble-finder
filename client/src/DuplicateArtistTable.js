@@ -8,7 +8,7 @@ const DuplicateArtistTable = (props) => {
     <div style={{width: '60%'}}>
       <Paper style={{padding: '10px'}}>
         {props.results.map(result =>
-          <TableEntry type={'artists'} results={result} user={props.user}></TableEntry>
+          <TableEntry type={'artists'} results={result} user={props.user} key={result.result1+result.result2}></TableEntry>
         )}
       </Paper>
     </div>
