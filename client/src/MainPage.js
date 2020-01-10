@@ -19,7 +19,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Paper } from '@material-ui/core';
+import { Paper, ButtonGroup } from '@material-ui/core';
 
 const styles = theme => ({
   root: {
@@ -28,7 +28,7 @@ const styles = theme => ({
     flexDirection: 'column',
     alignItems: 'center',
   },
-  formElement: {
+  mainPageElem: {
     margin: '10px',
   }
 });
@@ -181,7 +181,7 @@ class MainPage extends Component {
 
   handleInputChange(event) {
     if (event.target.name === 'reqType') {
-      this.setState({ results: {} });
+      this.setState({ results: {}, loadPercent: 0 });
     }
     this.setState({ [event.target.name] : event.target.name === 'useRules' ? event.target.checked : event.target.value});
   }
@@ -196,7 +196,7 @@ class MainPage extends Component {
           </DialogContentText>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   downloadResults(format) {
@@ -217,7 +217,7 @@ class MainPage extends Component {
       file = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
     }
     element.href = URL.createObjectURL(file);
-    element.download = `${this.state.user}.${format}`;
+    element.download = `${this.state.user}-${this.state.reqType}.${format}`;
     document.body.appendChild(element);
     element.click();
   }
@@ -244,28 +244,32 @@ class MainPage extends Component {
           <Typography variant="h2" style={{padding: '10px'}}>Split Scrobbler</Typography>
           <form onSubmit={this.makeRequest} style={{width: '250px'}}>
             <div className='request-form' style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
-              <Select className={classes.formElement} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
+              <Select className={classes.mainPageElem} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
                 <MenuItem value={'tracks'}>Tracks</MenuItem>
                 <MenuItem value={'albums'}>Albums</MenuItem>
                 <MenuItem value={'artists'}>Artists</MenuItem>
               </Select>
-              <TextField className={classes.formElement} name='user' label='Username' onChange={this.handleInputChange}/>
-              <div className={classes.formElement} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+              <TextField className={classes.mainPageElem} name='user' label='Username' onChange={this.handleInputChange}/>
+              <div className={classes.mainPageElem} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                 <Switch name='useRules' value={this.state.useRules} checked={this.state.useRules} onChange={this.handleInputChange} color='primary'/>
                 <Typography variant='body1' style={{marginRight: '30px'}}>Use rules</Typography>
                 <div onClick={() => this.setState({dialogOpen: true})}>
                   <HelpIcon></HelpIcon>
                 </div>
               </div>
-              <Button className={classes.formElement} variant='contained' type='submit'>Submit</Button>
+              <Button className={classes.mainPageElem} variant='contained' type='submit'>Submit</Button>
             </div>
           </form>
-          {this.state.results && this.state.loadPercent === 100 &&
+          {this.state.loadPercent === 100 &&
             <Paper style={{padding: '10px', marginBottom: '10px'}}>
-              <Typography className={classes.formElement} variant="h4">Summary</Typography>
-              <Typography className={classes.formElement} variant="body1">Number of duplicates: {Object.keys(this.state.results).reduce((acc, val) => acc + this.state.results[val].length, 0)}</Typography>
-              <Button className={classes.formElement} onClick={() => this.downloadResults('json')} variant='contained'>DOWNLOAD JSON</Button>
-              <Button className={classes.formElement} onClick={() => this.downloadResults('csv')} variant='contained'>DOWNLOAD CSV</Button>
+              <Typography className={classes.mainPageElem} variant="h4">Summary</Typography>
+              <Typography className={classes.mainPageElem} variant="body1">Number of duplicates: {Object.keys(this.state.results).reduce((acc, val) => acc + this.state.results[val].length, 0)}</Typography>
+              {Object.keys(this.state.results).length > 0 &&
+                <ButtonGroup className={classes.mainPageElem} variant="contained" aria-label="contained primary button group">
+                  <Button onClick={() => this.downloadResults('csv')}>Download CSV</Button>
+                  <Button onClick={() => this.downloadResults('json')}>Download JSON</Button>
+                </ButtonGroup>
+              }
             </Paper>
           }
           {resultsView}
