@@ -5,7 +5,7 @@ import Avatar from '@material-ui/core/Avatar';
 import LastFm from './LastFm';
 
 const baseURL = (user, artist) => `https://www.last.fm/user/${user}/library/music/${encodeStr(artist)}`;
-const encodeStr = (str) => encodeURI(str).replace(/\+/g, '%252B').replace(/%20/g, '+'); 
+const encodeStr = (str) => encodeURI(str).replace(/\+/g, '%252B').replace(/%20/g, '+').replace('/', '%2F'); 
 const suffix = (type, result) => (type === 'tracks' ? `/_/` : '/') + encodeStr(result);
 
 const Cell = (props) => {
@@ -22,8 +22,8 @@ const Cell = (props) => {
 }
 
 const TableEntry = (props) => {
-  let result1Link = baseURL(props.user, props.artist);
-  let result2Link = baseURL(props.user, props.artist);
+  let result1Link = baseURL(props.user, props.artist ? props.artist : props.results.result1);
+  let result2Link = baseURL(props.user, props.artist ? props.artist : props.results.result2);
 
   if (props.type !== 'artists') {
     result1Link += suffix(props.type, props.results.result1);
