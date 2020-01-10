@@ -19,6 +19,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
+import { Paper } from '@material-ui/core';
 
 const styles = theme => ({
   root: {
@@ -60,6 +61,7 @@ class MainPage extends Component {
     this.getPage = this.getPage.bind(this);
     this.partitionResults = this.partitionResults.bind(this);
     this.HelpDialog = this.HelpDialog.bind(this);
+    this.downloadResults = this.downloadResults.bind(this);
   }
 
   makeRequest(event) {
@@ -69,7 +71,7 @@ class MainPage extends Component {
           if (response.status === 200) {
             response.text().then(t => {
               let percentStep = Math.ceil(100 / (Math.ceil(parseInt(t) / 1000)));
-              this.getPage(parseInt(t), 1, [], percentStep);
+              this.getPage(parseInt(t), 1, [], percentStep, 0);
             })
           } else {
             response.json().then(res => {
@@ -82,7 +84,7 @@ class MainPage extends Component {
     event.preventDefault();
   }
 
-  getPage(total, pageNum, results, percentStep) {
+  getPage(total, pageNum, results, percentStep, numTries) {
     fetch(`/${this.state.reqType}?user=${this.state.user}&pageNum=${pageNum}`).then(response => {
       if (response.status === 200) {
         response.json().then(res => {
@@ -102,7 +104,11 @@ class MainPage extends Component {
         });
       } else {
         response.json().then(res => {
-          this.setState({ results: '', isLoading: false, error: res.error });
+          if (numTries >= 5) {
+            this.setState({ results: '', isLoading: false, error: res.error });
+          } else {
+            this.getPage(total, pageNum, results, percentStep, numTries + 1);
+          }
         });
       }
     });
@@ -186,18 +192,41 @@ class MainPage extends Component {
         <DialogTitle id="simple-dialog-title">Using rules</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Selecting this option will use a custom ruleset I developed to help eliminate false duplicates. For example, "Human After All" and "Human After All - SebastiAn Remix" would be detected as a duplicate without using the ruleset.
+            Selecting this option will use a custom rule set I developed to help eliminate false duplicates. For example, "Human After All" and "Human After All - SebastiAn Remix" would be detected as a duplicate without using the rule set.
           </DialogContentText>
         </DialogContent>
       </Dialog>
     )
   }
 
+  downloadResults(format) {
+    const element = document.createElement("a");
+    let file;
+    if (format === 'json') {
+      file = new Blob([JSON.stringify(this.state.results)], {type: 'application/json'});
+    } else {
+      let csvContent;
+      if (this.state.reqType === 'tracks' || this.state.reqType === 'albums') {
+        let header = this.state.reqType === 'tracks' ? 'track' : 'album'
+        csvContent = Object.keys(this.state.results).reduce((acc1, artist) => (
+          acc1 + this.state.results[artist].reduce((acc2, result) => acc2 + `"${artist}","${result.result1}","${result.result2}"\n`, '')
+        ), `artist,${header}1,${header}2\n`);
+      } else {
+        csvContent = this.state.results.matches.reduce((acc, result) => acc + `"${result.result1}","${result.result2}"\n`, 'artist1,artist2\n');
+      }
+      file = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+    }
+    element.href = URL.createObjectURL(file);
+    element.download = `${this.state.user}.${format}`;
+    document.body.appendChild(element);
+    element.click();
+  }
+
   render() {
     const { classes } = this.props;
     let resultsView;
     if (this.state.isLoading) {
-      resultsView = <LinearProgress variant="determinate" value={this.state.loadPercent} style={{width: '100%'}}/>
+      resultsView = <LinearProgress variant="determinate" value={this.state.loadPercent} style={{width: '100%', marginTop: '10px'}}/>
     } else {
       if (this.state.results) {
         if (this.state.reqType === 'albums' || this.state.reqType === 'tracks') {
@@ -231,6 +260,14 @@ class MainPage extends Component {
               <Button className={classes.formElement} variant='contained' type='submit'>Submit</Button>
             </div>
           </form>
+          {this.state.results && this.state.loadPercent === 100 &&
+            <Paper style={{padding: '10px', marginBottom: '10px'}}>
+              <Typography className={classes.formElement} variant="h4">Summary</Typography>
+              <Typography className={classes.formElement} variant="body1">Number of duplicates: {Object.keys(this.state.results).reduce((acc, val) => acc + this.state.results[val].length, 0)}</Typography>
+              <Button className={classes.formElement} onClick={() => this.downloadResults('json')} variant='contained'>DOWNLOAD JSON</Button>
+              <Button className={classes.formElement} onClick={() => this.downloadResults('csv')} variant='contained'>DOWNLOAD CSV</Button>
+            </Paper>
+          }
           {resultsView}
           <this.HelpDialog open={this.state.dialogOpen} onClose={() => this.setState({dialogOpen: false})}></this.HelpDialog>
         </div>
