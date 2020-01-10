@@ -38,6 +38,9 @@ const theme = createMuiTheme({
     type: 'dark',
     primary: green,
     secondary: blue
+  },
+  props: {
+    MuiInput: { inputProps: { spellCheck: 'false' } }
   }
 });
 
@@ -226,7 +229,7 @@ class MainPage extends Component {
     const { classes } = this.props;
     let resultsView;
     if (this.state.isLoading) {
-      resultsView = <LinearProgress variant="determinate" value={this.state.loadPercent} style={{width: '100%', marginTop: '10px'}}/>
+      resultsView = <LinearProgress variant="determinate" value={this.state.loadPercent} style={{width: '75%', marginTop: '10px'}}/>
     } else {
       if (this.state.results) {
         if (this.state.reqType === 'albums' || this.state.reqType === 'tracks') {
@@ -241,7 +244,10 @@ class MainPage extends Component {
     return (
       <MuiThemeProvider theme={theme}>
         <div className={classes.root}>
-          <Typography variant="h2" style={{padding: '10px'}}>Split Scrobbler</Typography>
+          <Typography style={{marginTop: '10px'}} variant="h2">Split Scrobbler</Typography>
+          <Typography style={{marginBottom: '10px'}} variant="body1">
+            Powered by <a href='https://www.last.fm/' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'white'}}>Last.fm</a>
+          </Typography>
           <form onSubmit={this.makeRequest} style={{width: '250px'}}>
             <div className='request-form' style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
               <Select className={classes.mainPageElem} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
