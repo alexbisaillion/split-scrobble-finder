@@ -9,17 +9,16 @@ import { withStyles } from "@material-ui/core/styles";
 import DuplicateTable from './DuplicateTable';
 import {createMuiTheme, MuiThemeProvider} from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import green from '@material-ui/core/colors/green';
-import blue from '@material-ui/core/colors/blue';
+import { green, blue } from '@material-ui/core/colors';
 import Switch from '@material-ui/core/Switch';
 import DuplicateArtistTable from './DuplicateArtistTable';
 import { isDuplicateTrack, isDuplicateAlbum, isDuplicateArtist } from './rules';
-import HelpIcon from './HelpIcon';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Paper, ButtonGroup } from '@material-ui/core';
+import { Paper, ButtonGroup, List, ListItem, Avatar, ListItemAvatar, ListItemText } from '@material-ui/core';
+import { LinkIcon, GitHubIcon, LastFmIcon, HelpIcon } from './Icons';
 
 const styles = theme => ({
   root: {
@@ -58,12 +57,13 @@ function sortResults(a, b) {
 class MainPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, loadPercent: 0, results: {}, error: '', dialogOpen: false};
+    this.state = {reqType: 'tracks', user: '', useRules: true, isLoading: false, loadPercent: 0, results: {}, error: '', isHelpOpen: false, isAboutOpen: false};
     this.handleInputChange = this.handleInputChange.bind(this);
     this.makeRequest = this.makeRequest.bind(this);
     this.getPage = this.getPage.bind(this);
     this.partitionResults = this.partitionResults.bind(this);
     this.HelpDialog = this.HelpDialog.bind(this);
+    this.AboutDialog = this.AboutDialog.bind(this);
     this.downloadResults = this.downloadResults.bind(this);
   }
 
@@ -191,12 +191,66 @@ class MainPage extends Component {
 
   HelpDialog() {
     return (
-      <Dialog onClose={() => this.setState({dialogOpen: false})} aria-labelledby="simple-dialog-title" open={this.state.dialogOpen}>
-        <DialogTitle id="simple-dialog-title">Using rules</DialogTitle>
+      <Dialog onClose={() => this.setState({isHelpOpen: false})} open={this.state.isHelpOpen}>
+        <DialogTitle>Using rules</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Selecting this option will use a custom rule set I developed to help eliminate false duplicates. For example, "Human After All" and "Human After All - SebastiAn Remix" would be detected as a duplicate without using the rule set.
           </DialogContentText>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  AboutDialog() {
+    return (
+      <Dialog onClose={() => this.setState({isAboutOpen: false})} aria-labelledby="simple-dialog-title" open={this.state.isAboutOpen}>
+        <DialogTitle>About</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This web app can help you find duplicate records in your Last.fm library.
+          </DialogContentText>
+          <DialogContentText>
+            Duplicate records often arise from variations in metadata between different streaming services, or updates to the tags of already existing songs, such as adding a feature tag.
+          </DialogContentText>
+          <DialogContentText>
+            This tool will go through your Last.fm library, searching for duplicate tracks, albums, or artists. Direct links are provided to each duplicate that the algorithm finds, so you can edit the scrobbles accordingly on the Last.fm website (of course, you need to have Last.fm Pro to do so).
+          </DialogContentText>
+          <DialogContentText>
+            You can also save the results of your search in either CSV or JSON format.
+          </DialogContentText>
+          <List>
+            <a href='https://github.com/alexbisaillion/split-scrobbler' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+              <ListItem button>
+                <ListItemAvatar>
+                  <Avatar>
+                    <GitHubIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText>Source code</ListItemText>
+              </ListItem>
+            </a>
+            <a href='https://alexbisaillion.me/' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+              <ListItem button>
+                <ListItemAvatar>
+                  <Avatar>
+                    <LinkIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText>My website</ListItemText>
+              </ListItem>
+            </a>
+            <a href='https://www.last.fm/user/watzpoppiin' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+              <ListItem button>
+                <ListItemAvatar>
+                  <Avatar>
+                    <LastFmIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText>My Last.fm</ListItemText>
+              </ListItem>
+            </a>
+          </List>
         </DialogContent>
       </Dialog>
     );
@@ -245,9 +299,11 @@ class MainPage extends Component {
       <MuiThemeProvider theme={theme}>
         <div className={classes.root}>
           <Typography style={{marginTop: '10px'}} variant="h2">Split Scrobbler</Typography>
-          <Typography style={{marginBottom: '10px'}} variant="body1">
-            Powered by <a href='https://www.last.fm/' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'white'}}>Last.fm</a>
-          </Typography>
+          <ButtonGroup variant="text" aria-label="text primary button group">
+            <Button><a href='https://www.last.fm/' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'white'}}>Powered by Last.fm</a></Button>
+            <Button onClick={() => this.setState({isAboutOpen: true})}>About</Button>
+          </ButtonGroup>
+
           <form onSubmit={this.makeRequest} style={{width: '250px'}}>
             <div className='request-form' style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
               <Select className={classes.mainPageElem} name='reqType' value={this.state.reqType} onChange={this.handleInputChange} style={{textAlign: 'left'}}>
@@ -259,7 +315,7 @@ class MainPage extends Component {
               <div className={classes.mainPageElem} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                 <Switch name='useRules' value={this.state.useRules} checked={this.state.useRules} onChange={this.handleInputChange} color='primary'/>
                 <Typography variant='body1' style={{marginRight: '30px'}}>Use rules</Typography>
-                <div onClick={() => this.setState({dialogOpen: true})}>
+                <div onClick={() => this.setState({isHelpOpen: true})}>
                   <HelpIcon></HelpIcon>
                 </div>
               </div>
@@ -267,7 +323,7 @@ class MainPage extends Component {
             </div>
           </form>
           {this.state.loadPercent === 100 &&
-            <Paper style={{padding: '10px', marginBottom: '10px'}}>
+            <Paper elevation={3} style={{padding: '10px', marginBottom: '10px'}}>
               <Typography className={classes.mainPageElem} variant="h4">Summary</Typography>
               <Typography className={classes.mainPageElem} variant="body1">Number of duplicates: {Object.keys(this.state.results).reduce((acc, val) => acc + this.state.results[val].length, 0)}</Typography>
               {Object.keys(this.state.results).length > 0 &&
@@ -279,7 +335,8 @@ class MainPage extends Component {
             </Paper>
           }
           {resultsView}
-          <this.HelpDialog open={this.state.dialogOpen} onClose={() => this.setState({dialogOpen: false})}></this.HelpDialog>
+          <this.HelpDialog></this.HelpDialog>
+          <this.AboutDialog></this.AboutDialog>
         </div>
       </MuiThemeProvider>
     );

@@ -2,7 +2,7 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
-import LastFm from './LastFm';
+import { LastFmIcon } from './Icons';
 
 const baseURL = (user, artist) => `https://www.last.fm/user/${user}/library/music/${encodeStr(artist)}`;
 const encodeStr = (str) => encodeURI(str).replace(/\+/g, '%252B').replace(/%20/g, '+').replace('/', '%2F'); 
@@ -10,10 +10,10 @@ const suffix = (type, result) => (type === 'tracks' ? `/_/` : '/') + encodeStr(r
 
 const Cell = (props) => {
   return (
-    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', width: '50%'}}>
+    <div className='table-cell' style={{display: 'flex', flexDirection: 'row', alignItems: 'center', width: '50%'}}>
       <a href={props.link} target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', padding: '5px'}}>
         <Avatar>
-          <LastFm></LastFm>
+          <LastFmIcon></LastFmIcon>
         </Avatar>
       </a>
       <Typography style={{textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>{props.result}</Typography>
