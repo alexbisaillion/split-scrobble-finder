@@ -168,6 +168,11 @@ function getArtists(req, res) {
   });
 }
 
+app.get('/*', (req, res) => {
+  let url = path.join(__dirname, './client/build', 'index.html');
+  res.sendFile(url);
+});
+
 const port = process.env.PORT || 3001;
 app.listen(port);
 

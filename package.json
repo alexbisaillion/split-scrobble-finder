@@ -4,7 +4,9 @@
   "description": "",
   "main": "split.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "node server.js",
+    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "author": "Alex Bisaillion",
   "license": "ISC",
