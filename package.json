@@ -12,10 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "request": "^2.88.0"
+    "request": "^2.88.2"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.7.7",
+    "@babel/preset-env": "^7.10.2",
     "babel-jest": "^24.9.0",
     "jest": "^24.9.0"
   }
