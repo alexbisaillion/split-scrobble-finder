@@ -73,7 +73,7 @@ class MainPage extends Component {
         fetch(`/num${this.state.reqType}?user=${this.state.user}`).then(response => {
           if (response.status === 200) {
             response.text().then(t => {
-              let percentStep = Math.ceil(100 / (Math.ceil(parseInt(t) / 1000)));
+              let percentStep = Math.floor(100 / (Math.ceil(parseInt(t) / 1000)));
               this.getPage(parseInt(t), 1, [], percentStep, 0);
             })
           } else {
