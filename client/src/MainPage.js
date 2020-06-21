@@ -19,6 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import { Paper, ButtonGroup, List, ListItem, Avatar, ListItemAvatar, ListItemText } from '@material-ui/core';
 import { LinkIcon, GitHubIcon, LastFmIcon, HelpIcon } from './Icons';
+import { registerPageView, registerDownload, registerRequest, registerLastfmError, registerCount } from './analytics';
 
 const styles = theme => ({
   root: {
@@ -43,7 +44,7 @@ const theme = createMuiTheme({
   }
 });
 
-function sortResults(a, b) {
+const sortResults = (a, b) => {
   a = a.replace(/:|\//g,' ').replace(/[^A-Za-z0-9\s]/g, '').toLowerCase();
   b = b.replace(/:|\//g,' ').replace(/[^A-Za-z0-9\s]/g, '').toLowerCase();
   if (a > b) {
@@ -53,6 +54,8 @@ function sortResults(a, b) {
   }
   return 0;
 }
+
+const getNumResults = (matched) => Object.keys(matched).reduce((acc, val) => acc + matched[val].length, 0);
 
 class MainPage extends Component {
   constructor(props) {
@@ -67,7 +70,12 @@ class MainPage extends Component {
     this.downloadResults = this.downloadResults.bind(this);
   }
 
+  componentDidMount() {
+    registerPageView();
+  }
+
   makeRequest(event) {
+    registerRequest(this.state.reqType, this.state.useRules);
     if (this.state.reqType && !this.state.isLoading) {
       this.setState({isLoading: true, loadPercent: 0}, () => {
         fetch(`/num${this.state.reqType}?user=${this.state.user}`).then(response => {
@@ -108,6 +116,7 @@ class MainPage extends Component {
       } else {
         response.json().then(res => {
           if (numTries >= 5) {
+            registerLastfmError(res.error, this.state.reqType);
             this.setState({ results: '', isLoading: false, error: res.error });
           } else {
             this.getPage(total, pageNum, results, percentStep, numTries + 1);
@@ -150,6 +159,7 @@ class MainPage extends Component {
         }
       }
     }
+    registerCount(getNumResults(matched), this.state.reqType);
     this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
 
@@ -168,6 +178,7 @@ class MainPage extends Component {
         }
       }
     }
+    registerCount(getNumResults(matched), this.state.reqType);
     this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
   
@@ -179,6 +190,7 @@ class MainPage extends Component {
         matched.push({result1: results[i], result2: results[i + 1]});
       }
     }
+    registerCount(matched.length, this.state.reqType);
     this.setState({ results: this.state.reqType === 'artists' ? {matches: matched} : matched, isLoading: false, error: '', loadPercent: 100 });
   }
 
@@ -257,6 +269,7 @@ class MainPage extends Component {
   }
 
   downloadResults(format) {
+    registerDownload(format);
     const element = document.createElement("a");
     let file;
     if (format === 'json') {
@@ -325,7 +338,7 @@ class MainPage extends Component {
           {this.state.loadPercent === 100 &&
             <Paper elevation={3} style={{padding: '10px', marginBottom: '10px'}}>
               <Typography className={classes.mainPageElem} variant="h4">Summary</Typography>
-              <Typography className={classes.mainPageElem} variant="body1">Number of duplicates: {Object.keys(this.state.results).reduce((acc, val) => acc + this.state.results[val].length, 0)}</Typography>
+              <Typography className={classes.mainPageElem} variant="body1">Number of duplicates: {getNumResults(this.state.results)}</Typography>
               {Object.keys(this.state.results).length > 0 &&
                 <ButtonGroup className={classes.mainPageElem} variant="contained" aria-label="contained primary button group">
                   <Button onClick={() => this.downloadResults('csv')}>Download CSV</Button>
