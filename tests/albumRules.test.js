@@ -121,7 +121,7 @@ describe('Check if the isDuplicateAlbum method successfully detects non duplicat
   test('Check if a live album is not a duplicate', () => {
     expect(rules.isDuplicateAlbum('Carrie & Lowell', 'Carrie & Lowell Live', true)).toBe(false);
   });
-  test('Check if a live album is not a duplicate', () => {
+  test('Check if a \"reloaded\" album is not a duplicate', () => {
     expect(rules.isDuplicateAlbum('88GLAM RELOADED', '88GLAM2', true)).toBe(false);
   });
   test('Check an album with \'ep\' in it without actually being an EP is not a duplicate', () => {
