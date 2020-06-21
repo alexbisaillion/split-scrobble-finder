@@ -1,6 +1,6 @@
 {
-  "short_name": "Split Scrobbler",
-  "name": "Split Scrobbler Last.fm App",
+  "short_name": "Split Scrobble Finder",
+  "name": "Split Scrobble Finder Last.fm App",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

@@ -232,7 +232,7 @@ class MainPage extends Component {
             You can also save the results of your search in either CSV or JSON format.
           </DialogContentText>
           <List>
-            <a href='https://github.com/alexbisaillion/split-scrobbler' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+            <a href='https://github.com/alexbisaillion/split-scrobble-finder' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
               <ListItem button>
                 <ListItemAvatar>
                   <Avatar>
@@ -311,7 +311,7 @@ class MainPage extends Component {
     return (
       <MuiThemeProvider theme={theme}>
         <div className={classes.root}>
-          <Typography style={{marginTop: '10px'}} variant="h2">Split Scrobbler</Typography>
+          <Typography style={{marginTop: '10px'}} variant="h2">Split Scrobble Finder</Typography>
           <ButtonGroup variant="text" aria-label="text primary button group">
             <Button><a href='https://www.last.fm/' target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'white'}}>Powered by Last.fm</a></Button>
             <Button onClick={() => this.setState({isAboutOpen: true})}>About</Button>

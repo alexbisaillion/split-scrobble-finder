@@ -4,7 +4,7 @@ import MainPage from './MainPage';
 import * as serviceWorker from './serviceWorker';
 import ReactGA from 'react-ga';
 
-ReactGA.initialize('redacted');
+ReactGA.initialize('UA-170170043-1');
 ReactDOM.render(<MainPage />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change

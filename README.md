@@ -1,4 +1,4 @@
-# split-scrobbler
+# split-scrobble-finder
 ---
 
 ### Background

@@ -20,7 +20,7 @@ function getOptions(params) {
   return {
     url: getURL(params),
     headers: {
-      'User-Agent': 'split-scrobbler'
+      'User-Agent': 'split-scrobble-finder'
     }
   }
 }
