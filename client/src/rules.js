@@ -1,7 +1,7 @@
 import { compareTwoStrings } from 'string-similarity';
 const featKeywords = ['feat. ', 'feat ', 'ft. ', 'ft ', 'with ', 'featuring '];
 const romanNumVals = { m: 1000, f: 500, c: 100, l: 50, x: 10, v: 5, i: 1 };
-const exemptKeywords = ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'remaster', 'single', 'acoustic'];
+const exemptKeywords = ['remix', 'mix', 'instrumental', 'live', 'edit', 'alt', 'demo', 'version', 'a cappella', 'interlude', 'reprise', 'continued', 'single', 'acoustic'];
 const albumKeywords = ['deluxe', 'expanded', 'extended', 'single', ' ep', 'tour edition', 'explicit version', 'deluxe version', 'expanded version', 'extended version', 'deluxe edition', 'expanded edition', 'extended edition', 'bonus track', 'special edition'];
 
 export function isDuplicateTrack(track1, track2, useRules) {
@@ -108,11 +108,14 @@ function isMatched(str1, str2) {
   str1 = stripNonAlphaNumeric(str1);
   str2 = stripNonAlphaNumeric(str2);
 
-  str1 = stripExcessWhitespace(str1);
-  str2 = stripExcessWhitespace(str2);
+  str1 = stripRemasteredTag(str1);
+  str2 = stripRemasteredTag(str2);
 
   str1 = stripFeatureTag(str1);
   str2 = stripFeatureTag(str2);
+
+  str1 = stripExcessWhitespace(str1);
+  str2 = stripExcessWhitespace(str2);
 
   let words = getWords(str1, str2);
 
@@ -229,6 +232,21 @@ function stripFeatureTag(str) {
     }
   }
   return str;
+}
+
+function stripRemasteredTag(str) {
+  for (let remasteredKeyword of ['remastered', 'remaster']) {
+    if (str.includes(remasteredKeyword)) {
+      str = str.substring(0, str.indexOf(remasteredKeyword));
+      str = stripYears(str);
+      break;
+    }
+  }
+  return str;
+}
+
+function stripYears(str) {
+  return str.replace(/\s*\b\d{4}\b/g, '');
 }
 
 function analyzeFeatureTagExcess(str1, str2) {

@@ -82,8 +82,8 @@ describe('Check if the isDuplicateTrack method successfully detects duplicates',
   test('Check if track with excess feature and a title with different casing is a duplicate', () => {
     expect(rules.isDuplicateTrack('PrimeTime', 'Primetime (feat. Miguel)', true)).toBe(true);
   });
-  test('Check if different remix artists are not stripped and marked as a duplicate', () => {
-    expect(rules.isDuplicateTrack('Sylvia Says (Breakbot Remix)', 'Sylvia Says (Tensnake Remix)', true)).toBe(false);
+  test('Check if a remastered song is a duplicate', () => {
+    expect(rules.isDuplicateTrack('Smooth Criminal', 'Smooth Criminal - 2012 Remaster', true)).toBe(true);
   });
 });
 
@@ -154,10 +154,7 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   test('Check if a continued song is not a duplicate', () => {
     expect(rules.isDuplicateTrack('Everything Now', 'Everything Now (continued)', true)).toBe(false);
   });
-  test('Check if a remastered song is not a duplicate', () => {
-    expect(rules.isDuplicateTrack('Smooth Criminal', 'Smooth Criminal - 2012 Remaster', true)).toBe(false);
-  });
-  test('Check if a remastered song is not a duplicate', () => {
+  test('Check if another part of a song using roman numerals is not a duplicate', () => {
     expect(rules.isDuplicateTrack('The Face Part I', 'The Face Part II', true)).toBe(false);
   });
   test('Check if an acoustic song is not a duplicate', () => {
@@ -166,7 +163,10 @@ describe('Check if the isDuplicateTrack method successfully detects non duplicat
   test('Check if the album version of a song is not a duplicate', () => {
     expect(rules.isDuplicateTrack('Tailwhip', 'Tailwhip (Album V)', true)).toBe(false);
   });
-  test('Check if the album version of a song is not a duplicate', () => {
+  test('Check if the similar interludes are not a duplicates', () => {
     expect(rules.isDuplicateTrack('Datwhip (interlude)', 'Dntstop (interlude)', true)).toBe(false);
+  });
+  test('Check if different remix artists are not stripped and marked as a duplicate', () => {
+    expect(rules.isDuplicateTrack('Sylvia Says (Breakbot Remix)', 'Sylvia Says (Tensnake Remix)', true)).toBe(false);
   });
 });
